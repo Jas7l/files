@@ -1,14 +1,13 @@
 services:
   backend:
     build:
-      context: .
+      context: ./backend-app
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     env_file:
       - .env
     volumes:
-      - ./storage:/app/storage
-      - ./files.db:/app/files.db
+      - ./backend-app/storage:/app/storage
+      - ./backend-app/files.db:/app/files.db
     restart: unless-stopped
-
