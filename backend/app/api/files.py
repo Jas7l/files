@@ -39,6 +39,11 @@ def download_file(file_id: int, db: Session = Depends(get_db)):
     return FileManager(db).download_file(file_id)
 
 
+@router.get("/fetch")
+def fetch_file(file_name: str = Query(...), db: Session = Depends(get_db)):
+    return FileManager(db).fetch_file(file_name)
+
+
 # Route to upload a file
 @router.post("/upload", response_model=FileRead)
 def upload_file(

@@ -1,6 +1,7 @@
 import os
 import shutil
 import datetime
+import mimetypes
 from typing import Optional, List
 from app.config import settings
 
@@ -81,6 +82,16 @@ class FileManager:
             raise HTTPException(status_code=404, detail="File not found")
         return file
 
+    def get_file_by_name(self, file_name: str) -> File:
+        try:
+            name, extension = file_name.rsplit('.', 1)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid file name format. Expected 'name.extension'")
+        file = self.db.query(File).filter(File.name == name, File.extension == extension).first()
+        if not file:
+            raise HTTPException(status_code=404, detail="File not found")
+        return file
+
     def download_file(self, file_id: int) -> FileResponse:
         file = self.get_file_by_id(file_id)
         file_path = os.path.join(file.path, f"{file.name}.{file.extension}")
@@ -91,6 +102,19 @@ class FileManager:
             filename=f"{file.name}.{file.extension}",
             media_type="application/octet-stream",
             headers={"Content-Disposition": f"attachment; filename={file.name}.{file.extension}"}
+        )
+
+    def fetch_file(self, file_name: str) -> FileResponse:
+        file = self.get_file_by_name(file_name)
+        file_path = os.path.join(file.path, f"{file.name}.{file.extension}")
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found on disk")
+        mime_type, _ = mimetypes.guess_type(file_path)
+        media_type = mime_type or "application/octet-stream"
+        return FileResponse(
+            path=file_path,
+            filename=f"{file.name}.{file.extension}",
+            media_type=media_type
         )
 
     def upload_file(self, uploaded_file: UploadFile, path: str = "", comment: Optional[str] = None) -> File:
