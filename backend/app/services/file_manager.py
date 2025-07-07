@@ -150,7 +150,6 @@ class FileManager:
 
         # Update DB
         self.db.add(db_file)
-        self.db.commit()
         self.db.refresh(db_file)
         return db_file
 
@@ -176,8 +175,7 @@ class FileManager:
 
         # Update DB
         file.update_date = datetime.datetime.utcnow()
-        self.db.commit()
-        self.db.refresh(file)
+        self.db.add(file)
         return file
 
     def delete_file(self, file_id: int) -> File:
@@ -188,5 +186,4 @@ class FileManager:
             os.remove(full_path)
         # Remove file from DB
         self.db.delete(file)
-        self.db.commit()
         return file
