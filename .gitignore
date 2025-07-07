@@ -1,6 +1,6 @@
-*.db
 __pycache__/
 *.py[cod]
 .idea/
 venv/
 .env
+**/storage/
