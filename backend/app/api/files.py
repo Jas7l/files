@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 # Route for syncing the database with the local storage
-@router.post("/sync")
+@router.post("/files/sync")
 async def sync_files(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     background_tasks.add_task(FileManager(db).sync_storage_and_db)
     return {"detail": "Sync started in background"}
@@ -34,18 +34,18 @@ def get_file(file_id: int, db: Session = Depends(get_db)):
 
 
 # Route to download a file
-@router.get("/download/{file_id}")
+@router.get("/files/{file_id}/download")
 def download_file(file_id: int, db: Session = Depends(get_db)):
     return FileManager(db).download_file(file_id)
 
 
-@router.get("/fetch")
+@router.get("/files/download")
 def fetch_file(file_name: str = Query(...), db: Session = Depends(get_db)):
     return FileManager(db).fetch_file(file_name)
 
 
 # Route to upload a file
-@router.post("/upload", response_model=FileRead)
+@router.post("/files", response_model=FileRead)
 def upload_file(
     uploaded_file: UploadFile = File(...),
     path: Optional[str] = Form(""),

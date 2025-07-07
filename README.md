@@ -1,15 +1,21 @@
 ## Содержимое проекта
-### FastAPI + SQLite Backend: port 8000
+### FastAPI: port 8000
 ```
-@router.post("/sync") - синхронизация базы данных и локального хранилища
+@router.post("/files/sync") - синхронизация базы данных и локального хранилища
 @router.get("/files") - возвращает JSON со списком файлов из базы данных, ?path=mypath для фильтра по пути файла
 @router.get("/files/{file_id}) - возвращает файл из базы данных по ID
-@router.get("/download/{file_id}) - скачивает файл с указанным ID на локальный компьютер 
-@router.get("/fetch") - возвращает файл с указанным в ?file_name= именем для использования на фронтенде
-@router.post("/upload") - загружает файл в базу данных и на локальное хранилище
+@router.get("/files/{file_id}/download) - скачивает файл с указанным ID на локальный компьютер 
+@router.get("/files/download") - возвращает файл с указанным в ?file_name= именем для использования на фронтенде
+@router.post("/files") - загружает файл в базу данных и на локальное хранилище
 @router.patch("/files/{file_id}) - даёт возможность обновить некоторые свойства файла
 @router.delete("/files/{file_id}) - удаляет файл по id
 ```
+
+### Postgres data base: port 5432
+#### Настройка в .env
+
+### pgAdmin 4: port 8080
+#### Для просмотра базы данных и взаимодействия с ней
 
 ## Установка и запуск
 ### Клонирование репозитория
@@ -26,10 +32,14 @@ New-Item -Name ".env" -ItemType "File"
 #### Настройки для дебага
 ```bash
 STORAGE_PATH=./storage
-DATABASE_URL=sqlite:///./files.db
 DEBUG=True
 APP_NAME=File Manager API
 VERSION=1.0.0
+POSTGRES_USER=user_name
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=db_name
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
 ```
 
 ### Запуск Docker
