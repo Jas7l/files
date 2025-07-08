@@ -11,9 +11,8 @@ def sync_storages():
     log.info("Starting sync")
 
     try:
-        with context_db() as db:
-            FileManager(db).sync_storage_and_db()
-            log.info("Sync completed")
+        FileManager.sync_storage_and_db()
+        log.info("Sync completed")
     except Exception as e:
         log.error(f"Sync failed: {e}")
         raise
