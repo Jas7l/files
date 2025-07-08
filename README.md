@@ -1,13 +1,13 @@
 ## Содержимое проекта
 ### FastAPI: port 8000
 ```
-@router.post("/files/sync") - синхронизация базы данных и локального хранилища
-@router.get("/files") - возвращает JSON со списком файлов из базы данных, ?path=mypath для фильтра по пути файла
-@router.get("/files/{file_id}) - возвращает файл из базы данных по ID
-@router.get("/files/{file_id}/download) - скачивает файл с указанным ID на локальный компьютер 
-@router.post("/files") - загружает файл в базу данных и на локальное хранилище
-@router.patch("/files/{file_id}) - даёт возможность обновить некоторые свойства файла
-@router.delete("/files/{file_id}) - удаляет файл по id
+@router.post("/api/files/sync") - синхронизация базы данных и локального хранилища
+@router.get("/api/files") - возвращает JSON со списком файлов из базы данных, ?path=mypath для фильтра по пути файла
+@router.get("/api/files/{file_id}) - возвращает файл из базы данных по ID
+@router.get("/api/files/{file_id}/download) - скачивает файл с указанным ID на локальный компьютер 
+@router.post("/api/files") - загружает файл в базу данных и на локальное хранилище
+@router.patch("/api/files/{file_id}) - даёт возможность обновить некоторые свойства файла
+@router.delete("/api/files/{file_id}) - удаляет файл по id
 ```
 
 ### Postgres data base: port 5432
