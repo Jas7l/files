@@ -40,6 +40,7 @@ class FileManager:
                 if path not in fs_files_path:
                     db.delete(file)
 
+            # d
             # Add files to DB if on disk
             for path in fs_files_path:
                 if path not in db_files_path:
