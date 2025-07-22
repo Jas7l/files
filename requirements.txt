@@ -1,4 +1,4 @@
-fastapi
+flask
 uvicorn
 sqlalchemy
 pydantic
@@ -7,3 +7,4 @@ python-multipart
 python-dotenv
 psycopg2-binary
 apscheduler
+dataclass_factory

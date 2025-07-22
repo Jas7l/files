@@ -3,15 +3,14 @@ import shutil
 import datetime
 import mimetypes
 from typing import Optional, List, Union
-from app.config import settings
-from sqlalchemy.orm import Session
+from ..config import settings
+from sqlalchemy.orm import Session as PGSession
 
 from fastapi import UploadFile, HTTPException
 from fastapi.responses import FileResponse
 
-from app.models.file import File
-from app.schemas.file import FileRead, FileUpdate
-from app.database import context_db
+from ..models.file import File
+from ..schemas.file import FileRead, FileUpdate
 
 # Setup storage
 STORAGE_PATH = settings.STORAGE_PATH
@@ -19,11 +18,16 @@ os.makedirs(STORAGE_PATH, exist_ok=True)
 
 
 class FileManager:
-    @staticmethod
-    def sync_storage_and_db():
+    def __init__ (
+            self,
+            pg_connection: PGSession
+    ):
+        self._pg = pg_connection
+
+    def sync_storage_and_db(self):
         # Get files from db
-        with context_db() as db:
-            db_files = db.query(File).all()
+        with self._pg.begin():
+            db_files = self._pg.query(File).all()
             db_files_path = {
                 os.path.normpath(os.path.join(file.path, f"{file.name}.{file.extension}")): file for file in db_files
             }
@@ -38,9 +42,8 @@ class FileManager:
             # Delete files from DB if not on disk
             for path, file in db_files_path.items():
                 if path not in fs_files_path:
-                    db.delete(file)
+                    self._pg.delete(file)
 
-            # d
             # Add files to DB if on disk
             for path in fs_files_path:
                 if path not in db_files_path:
@@ -58,9 +61,7 @@ class FileManager:
                         update_date=None,
                         comment=None
                     )
-                    db.add(new_file)
-
-
+                    self._pg.add(new_file)
 
         # Delete empty directories
         for root, _, _ in os.walk(STORAGE_PATH, topdown=False):
@@ -71,17 +72,15 @@ class FileManager:
                     pass
 
     # Get all files, or filter by path by using "like"
-    @staticmethod
-    def get_all_files(path: Optional[str] = None) -> List[FileRead]:
-        with context_db() as db:
-            query = db.query(File)
+    def get_all_files(self, path: Optional[str] = None) -> List[FileRead]:
+        with self._pg.begin() as db:
+            query = self._pg.query(File)
             if path:
                 query = query.filter(File.path.like(f"%{path}%"))
             files = query.all()
             return [FileRead.model_validate(f) for f in files]
 
-    @staticmethod
-    def get_file_by_id(file_id: int,db: Optional[Session] = None) -> Union[File, FileRead]:
+    def get_file_by_id(self, file_id: int, db: Optional[Session] = None) -> Union[File, FileRead]:
         own_session = False
         if db is None:
             db = context_db().__enter__()
@@ -99,20 +98,18 @@ class FileManager:
             return result
         return file
 
-    @staticmethod
-    def get_file_by_name(file_name: str) -> FileRead:
-        with context_db() as db:
+    def get_file_by_name(self, file_name: str) -> FileRead:
+        with self._pg.begin():
             try:
                 name, extension = file_name.rsplit('.', 1)
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid file name format. Expected 'name.extension'")
-            file = db.query(File).filter(File.name == name, File.extension == extension).first()
+            file = self._pg.query(File).filter(File.name == name, File.extension == extension).first()
             if not file:
                 raise HTTPException(status_code=404, detail="File not found")
             return FileRead.model_validate(file)
 
-    @staticmethod
-    def download_file(file_id: int) -> FileResponse:
+    def download_file(self, file_id: int) -> FileResponse:
         file = FileManager.get_file_by_id(file_id)
         file_path = os.path.join(file.path, f"{file.name}.{file.extension}")
         if not os.path.exists(file_path):
@@ -124,8 +121,7 @@ class FileManager:
             headers={"Content-Disposition": f"attachment; filename={file.name}.{file.extension}"}
         )
 
-    @staticmethod
-    def upload_file(uploaded_file: UploadFile, path: str = "", comment: Optional[str] = None) -> FileRead:
+    def upload_file(self, uploaded_file: UploadFile, path: str = "", comment: Optional[str] = None) -> FileRead:
         os.path.normpath(path)
         filename = uploaded_file.filename
         name, extension = os.path.splitext(filename)
@@ -146,7 +142,7 @@ class FileManager:
         size = os.path.getsize(full_path)
 
         # Creating file for load to DB
-        with context_db() as db:
+        with self._pg.begin():
             db_file = File(
                 name=name,
                 extension=extension,
@@ -158,14 +154,13 @@ class FileManager:
             )
 
             # Update DB
-            db.add(db_file)
-            db.commit()
-            db.refresh(db_file)
+            self._pg.add(db_file)
+            self._pg.commit()
+            self._pg.refresh(db_file)
             return FileRead.model_validate(db_file)
 
-    @staticmethod
-    def update_file(file_id: int, file_data: FileUpdate) -> FileRead:
-        with context_db() as db:
+    def update_file(self, file_id: int, file_data: FileUpdate) -> FileRead:
+        with self._pg.begin():
             file = FileManager.get_file_by_id(file_id, db=db)
             old_path = os.path.join(file.path, f"{file.name}.{file.extension}")
 
@@ -187,17 +182,16 @@ class FileManager:
 
             # Update DB
             file.update_date = datetime.datetime.utcnow()
-            db.add(file)
+            self._pg.add(file)
             return FileRead.model_validate(file)
 
-    @staticmethod
-    def delete_file(file_id: int) -> FileRead:
-        with context_db() as db:
-            file = FileManager.get_file_by_id(file_id, db=db)
+    def delete_file(self, file_id: int) -> FileRead:
+        with self._pg.begin():
+            file = FileManager.get_file_by_id(file_id, db=self._pg)
             full_path = os.path.join(file.path, f"{file.name}.{file.extension}")
             # Remove file from dir
             if os.path.exists(full_path):
                 os.remove(full_path)
             # Remove file from DB
-            db.delete(file)
+            self._pg.delete(file)
             return FileRead.model_validate(file)
