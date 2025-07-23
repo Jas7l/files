@@ -1,60 +1,65 @@
-from fastapi import APIRouter, UploadFile, File, Form, BackgroundTasks, HTTPException, Query
-from fastapi.responses import FileResponse
-from typing import List, Optional
-from app.schemas.file import FileUpdate, FileRead
-from app.services.file_manager import FileManager
-from app.database import context_db
+from flask import Blueprint, jsonify
+from threading import Thread
 
-# Create router
-router = APIRouter()
+from ..injectors import services
+
+file_bp = Blueprint("file", __name__, url_prefix="/api/file")
 
 
 # Route for syncing the database with the local storage
-@router.post("/api/files/sync")
-async def sync_files(background_tasks: BackgroundTasks):
-    background_tasks.add_task(FileManager.sync_storage_and_db)
-    return {"detail": "Sync started in background"}
+@file_bp.route("/sync", methods=["POST"])
+def sync_files():
+    fs = services.file_service()
+    thread = Thread(target=fs.sync_storage_and_db())
+    thread.start()
+    return jsonify({"detail": "Sync started in background"})
 
 
 # Route to get all files or filter files by path
 # URL example: /files?path=my-path
-@router.get("/api/files", response_model=List[FileRead])
-def get_files(path: Optional[str] = Query(None)):
-    files = FileManager.get_all_files(path)
+@file_bp.route("/", methods=["GET"])
+def get_files():
+    fs = services.file_service()
+    files = fs.get_all_files()
     if not files:
-        raise HTTPException(status_code=404, detail="No files found")
-    return files
+        return jsonify(status_code=404, detail="No files found")
+    return jsonify(files)
 
 
 # Route to get file by ID
-@router.get("/api/files/{file_id}", response_model=FileRead)
-def get_file(file_id: int):
-    return FileManager.get_file_by_id(file_id)
+@file_bp.route("/<int:file_id>", methods=["GET"])
+def get_file(file_id):
+    fs = services.file_service()
+    file = fs.get_file_by_id(file_id)
+    return jsonify(file)
 
 
 # Route to download a file
-@router.get("/api/files/{file_id}/download")
-def download_file(file_id: int):
-    return FileManager.download_file(file_id)
+@file_bp.route("/<int:file_id>/download", methods=["GET"])
+def download_file(file_id):
+    fs = services.file_service()
+    return fs.download_file(file_id)
 
 
 # Route to upload a file
-@router.post("/api/files", response_model=FileRead)
-def upload_file(
-    uploaded_file: UploadFile = File(...),
-    path: Optional[str] = Form(""),
-    comment: Optional[str] = Form(None),
-):
-    return FileManager.upload_file(uploaded_file, path, comment)
+@file_bp.route("/", methods=["POST"])
+def upload_file():
+    fs = services.file_service()
+    file = fs.upload_file()
+    return jsonify(file)
 
 
 # Route to update a file
-@router.patch("/api/files/{file_id}", response_model=FileRead)
-def update_file(file_id: int, file_data: FileUpdate):
-    return FileManager.update_file(file_id, file_data)
+@file_bp.route("/<int:file_id>", methods=["PATCH"])
+def update_file(file_id):
+    fs = services.file_service()
+    file = fs.update_file(file_id)
+    return jsonify(file)
 
 
 # Route to delete a file
-@router.delete("/api/files/{file_id}", response_model=FileRead)
+@file_bp.route("/<int:file_id>", methods=["DELETE"])
 def delete_file(file_id: int):
-    return FileManager.delete_file(file_id)
+    fs = services.file_service()
+    file = fs.delete_file(file_id)
+    return jsonify(file)

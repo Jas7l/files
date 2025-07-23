@@ -3,7 +3,7 @@ import typing
 from datetime import datetime
 
 import sqlalchemy as sa
-from .model import ValuedEnum, BaseOrmMappedModel, Model
+from .model import BaseOrmMappedModel
 
 SCHEMA_NAME = 'external_modules'
 

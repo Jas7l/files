@@ -1,5 +1,4 @@
-from app.database import context_db
-from app.services.file_manager import FileManager
+from .injectors import services
 from apscheduler.schedulers.blocking import BlockingScheduler
 import logging
 
@@ -9,9 +8,9 @@ log = logging.getLogger(__name__)
 
 def sync_storages():
     log.info("Starting sync")
-
+    fs = services.file_service()
     try:
-        FileManager.sync_storage_and_db()
+        fs.sync_storage_and_db()
         log.info("Sync completed")
     except Exception as e:
         log.error(f"Sync failed: {e}")

@@ -1,17 +1,20 @@
 import flask
-import api
-from fastapi.middleware.cors import CORSMiddleware
+from .injectors import services
+from .api.files import file_bp
+from .models.exception import ModuleException
 from .database import engine, Base
 
 # Create tables in DB, FastAPI app
 Base.metadata.create_all(bind=engine)
 app = flask.Flask(__name__)
-app.register_blueprint(api.files_routes)
+app.register_blueprint(file_bp)
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["http://localhost:5173"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"]
-    )
+services.cors_service(app)
+
+
+@app.errorhandler(ModuleException)
+def handle_exception(error: ModuleException):
+    response = flask.jsonify(error.json())
+    response.status_code = error.code
+    return response
+
