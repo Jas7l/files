@@ -7,18 +7,18 @@ from flask import request, send_file
 from typing import Optional, List, Dict, Any, Union
 from sqlalchemy.orm import Session as PGSession
 
-from ..models.exception import ModuleException
-from ..models.file import File
+from models.exception import ModuleException
+from models.file import File
 
 
 class FileManager:
-    def __init__ (
+    def __init__(
             self,
             pg_connection: PGSession,
             storage_path: str
     ):
         self._pg = pg_connection
-        self.STORAGE_PATH = storage_path
+        self._st = storage_path
 
     def sync_storage_and_db(self):
         # Get files from db
@@ -30,7 +30,7 @@ class FileManager:
 
             # Get files from system storage
             fs_files_path = {}
-            for root, _, files in os.walk(STORAGE_PATH):
+            for root, _, files in os.walk(self._st):
                 for file in files:
                     full_path = os.path.normpath(os.path.join(root, file))
                     fs_files_path[full_path] = file
@@ -59,9 +59,10 @@ class FileManager:
                     )
                     self._pg.add(new_file)
 
+
         # Delete empty directories
-        for root, _, _ in os.walk(STORAGE_PATH, topdown=False):
-            if not os.listdir(root) and os.path.abspath(root) != os.path.abspath(STORAGE_PATH):
+        for root, _, _ in os.walk(self._st, topdown=False):
+            if not os.listdir(root) and os.path.abspath(root) != os.path.abspath(self._st):
                 try:
                     os.rmdir(root)
                 except OSError:
@@ -120,14 +121,14 @@ class FileManager:
         path = fields.get("path")
         comment = fields.get("comment")
 
-        if not path or not uploaded_file:
+        if not uploaded_file:
             raise ModuleException("File not found", {"data": ""}, 400)
 
         os.path.normpath(path)
         filename = uploaded_file.filename
         name, extension = os.path.splitext(filename)
         extension = extension.lstrip('.')
-        full_storage_path = os.path.join(STORAGE_PATH, path)
+        full_storage_path = os.path.join(self._st, path)
         full_path = os.path.join(full_storage_path, filename)
 
         if os.path.exists(full_path):
@@ -137,7 +138,7 @@ class FileManager:
 
         # Writing file on local storage
         with open(full_path, 'wb') as f:
-            shutil.copyfileobj(uploaded_file.file, f)
+            shutil.copyfileobj(uploaded_file.stream, f)
 
         size = os.path.getsize(full_path)
 
@@ -155,6 +156,8 @@ class FileManager:
 
             # Update DB
             self._pg.add(db_file)
+            self._pg.flush()
+            self._pg.refresh(db_file)
             return db_file.dump()
 
     def update_file(self, file_id) -> Dict[str, Any]:
@@ -186,6 +189,8 @@ class FileManager:
             # Update DB
             file.update_date = datetime.datetime.utcnow()
             self._pg.add(file)
+            self._pg.flush()
+            self._pg.refresh(file)
             return file.dump()
 
     def delete_file(self, file_id: int) -> Dict[str, Any]:

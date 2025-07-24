@@ -30,7 +30,6 @@ services:
 
   backend:
     build:
-      context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
@@ -39,24 +38,24 @@ services:
     env_file:
       - .env
     volumes:
-      - ./backend/storage:/app/storage
+      - ./src/storage:/app/storage
     networks:
       - backend-network
-    restart: unless-stopped
+    restart: always
 
   syncer:
-    build: ./backend
-    command: python -m app.sync_runner
+    build: .
+    command: python -m services.sync_runner
     depends_on:
       - backend
       - db
     env_file:
       - .env
     volumes:
-      - ./backend/storage:/app/storage
+      - ./src/storage:/app/storage
     networks:
       - backend-network
-    restart: unless-stopped
+    restart: always
 
 volumes:
   postgres-data:

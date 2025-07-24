@@ -5,7 +5,7 @@ from datetime import datetime
 import sqlalchemy as sa
 from .model import BaseOrmMappedModel
 
-SCHEMA_NAME = 'external_modules'
+SCHEMA_NAME = 'files'
 
 
 @dc.dataclass
@@ -13,7 +13,6 @@ class File(BaseOrmMappedModel):
     """."""
 
     __tablename__ = "files"
-    __table_args__ = {"schema": SCHEMA_NAME}
 
     id: int = dc.field(
         default=None,

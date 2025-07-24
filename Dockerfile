@@ -1,20 +1,15 @@
 # Python image
 FROM python:3.12-slim
 
-# App directory
 WORKDIR /app
+RUN apt update && apt install -y locales
+RUN locale-gen ru_RU && locale-gen ru_RU.UTF-8 && update-locale
 
-# Install requirements
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /app/
+RUN python -m pip install --no-cache-dir -r requirements.txt
 
-# Copy app
 COPY . .
-
-RUN mkdir -p /app/storage
-
-# Open port
-EXPOSE 8000
+WORKDIR /app/src
 
 # Start command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["gunicorn", "app:app", "-b", "0.0.0.0:8000", "--reload"]

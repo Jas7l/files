@@ -1,8 +1,8 @@
 import flask
-from .injectors import services
-from .api.files import file_bp
-from .models.exception import ModuleException
-from .database import engine, Base
+from injectors import services
+from api.files import file_bp
+from models.exception import ModuleException
+from services.database import engine, Base
 
 # Create tables in DB, FastAPI app
 Base.metadata.create_all(bind=engine)
@@ -17,4 +17,5 @@ def handle_exception(error: ModuleException):
     response = flask.jsonify(error.json())
     response.status_code = error.code
     return response
+
 

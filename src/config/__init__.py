@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: str
 
-    STORAGE_PATH: str = "./storage"
+    STORAGE_PATH: str = "./src/storage"
     DEBUG: bool = False
     APP_NAME: str = "File Manager API"
     VERSION: str = "1.0.0"

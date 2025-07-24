@@ -1,5 +1,6 @@
 flask
-uvicorn
+flask-cors
+gunicorn
 sqlalchemy
 pydantic
 pydantic-settings
@@ -8,3 +9,4 @@ python-dotenv
 psycopg2-binary
 apscheduler
 dataclass_factory
+dataclass-factory
