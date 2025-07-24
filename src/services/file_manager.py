@@ -22,6 +22,7 @@ class FileManager:
 
     def sync_storage_and_db(self):
         # Get files from db
+        print(self._st)
         with self._pg.begin():
             db_files = self._pg.query(File).all()
             db_files_path = {
@@ -70,6 +71,7 @@ class FileManager:
 
     # Get all files, or filter by path by using "like"
     def get_all_files(self) -> List[Dict[str, Any]]:
+        print(self._st)
         path = request.args.get("path")
         with self._pg.begin():
             query = self._pg.query(File)
@@ -124,7 +126,7 @@ class FileManager:
         if not uploaded_file:
             raise ModuleException("File not found", {"data": ""}, 400)
 
-        os.path.normpath(path)
+        path = os.path.normpath(path)
         filename = uploaded_file.filename
         name, extension = os.path.splitext(filename)
         extension = extension.lstrip('.')
@@ -135,7 +137,7 @@ class FileManager:
             raise ModuleException("File not found", {"data": ""}, 400)
         # Creating dir if it doesn't exist
         os.makedirs(full_storage_path, exist_ok=True)
-
+        content = uploaded_file.read()
         # Writing file on local storage
         with open(full_path, 'wb') as f:
             shutil.copyfileobj(uploaded_file.stream, f)
