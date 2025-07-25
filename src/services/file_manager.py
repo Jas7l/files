@@ -1,10 +1,10 @@
-import os
-import shutil
 import datetime
 import json
+import os
+import shutil
+from typing import Optional, List, Dict, Any, Union
 
 from flask import request, send_file
-from typing import Optional, List, Dict, Any, Union
 from sqlalchemy.orm import Session as PGSession
 
 from models.exception import ModuleException
@@ -60,7 +60,6 @@ class FileManager:
                     )
                     self._pg.add(new_file)
 
-
         # Delete empty directories
         for root, _, _ in os.walk(self._st, topdown=False):
             if not os.listdir(root) and os.path.abspath(root) != os.path.abspath(self._st):
@@ -69,7 +68,6 @@ class FileManager:
                 except OSError:
                     pass
 
-    # Get all files, or filter by path by using "like"
     def get_all_files(self) -> List[Dict[str, Any]]:
         print(self._st)
         path = request.args.get("path")
@@ -182,7 +180,6 @@ class FileManager:
             file = self.get_file_by_id(file_id, session=self._pg)
             old_path = os.path.join(file.path, f"{file.name}.{file.extension}")
 
-            # Update fields if needed
             if name:
                 file.name = name
             if path:
@@ -190,7 +187,6 @@ class FileManager:
             if comment:
                 file.comment = comment
 
-            # Move and rename file if needed
             new_full_path = os.path.join(file.path, f"{file.name}.{file.extension}")
             if old_path != new_full_path:
                 os.makedirs(file.path, exist_ok=True)
@@ -198,7 +194,6 @@ class FileManager:
                     raise ModuleException("File not found", {"data": ""}, 400)
                 os.rename(old_path, new_full_path)
 
-            # Update DB
             file.update_date = datetime.datetime.utcnow()
             self._pg.add(file)
             self._pg.flush()
@@ -209,9 +204,9 @@ class FileManager:
         with self._pg.begin():
             file = self.get_file_by_id(file_id, session=self._pg)
             full_path = os.path.join(file.path, f"{file.name}.{file.extension}")
-            # Remove file from dir
+
             if os.path.exists(full_path):
                 os.remove(full_path)
-            # Remove file from DB
+
             self._pg.delete(file)
             return file.dump()

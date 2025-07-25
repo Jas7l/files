@@ -1,9 +1,10 @@
 import flask
-from injectors import services
+
 from api.files import file_bp
+from injectors import services
 from models.exception import ModuleException
-from services.database import engine
 from models.model import BaseOrmMappedModel
+from services.database import engine
 
 BaseOrmMappedModel.REGISTRY.metadata.create_all(bind=engine)
 

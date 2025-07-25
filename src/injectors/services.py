@@ -1,8 +1,10 @@
 import os
+
 from flask_cors import CORS
-from services.file_manager import FileManager
-from services.database import SessionLocal
+
 from config import settings
+from services.database import SessionLocal
+from services.file_manager import FileManager
 
 
 def file_service() -> FileManager:
