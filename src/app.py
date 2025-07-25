@@ -5,7 +5,6 @@ from models.exception import ModuleException
 from services.database import engine
 from models.model import BaseOrmMappedModel
 
-# Create tables in DB, FastAPI app
 BaseOrmMappedModel.REGISTRY.metadata.create_all(bind=engine)
 
 app = flask.Flask(__name__)

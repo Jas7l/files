@@ -116,35 +116,42 @@ class FileManager:
         )
 
     def upload_file(self) -> Dict[str, Any]:
-        raw_fields = request.form.get("fields", {})
+        raw_fields = request.form.get("fields")
+        if not raw_fields:
+            raise ModuleException("Missing form fields", {"data": ""}, 400)
+
         fields = json.loads(raw_fields)
+
         uploaded_file = request.files.get("attachment")
-
-        path = fields.get("path")
-        comment = fields.get("comment")
-
         if not uploaded_file:
             raise ModuleException("File not found", {"data": ""}, 400)
 
-        path = os.path.normpath(path)
+        relative_path = fields.get("path", "")
+
+        relative_path = os.path.normpath(relative_path).lstrip(os.sep)
+        full_storage_path = os.path.join(self._st, relative_path)
         filename = uploaded_file.filename
+
         name, extension = os.path.splitext(filename)
         extension = extension.lstrip('.')
-        full_storage_path = os.path.join(self._st, path)
         full_path = os.path.join(full_storage_path, filename)
 
         if os.path.exists(full_path):
-            raise ModuleException("File not found", {"data": ""}, 400)
-        # Creating dir if it doesn't exist
+            raise ModuleException("File already exists", {"data": ""}, 400)
+
         os.makedirs(full_storage_path, exist_ok=True)
-        content = uploaded_file.read()
-        # Writing file on local storage
-        with open(full_path, 'wb') as f:
-            shutil.copyfileobj(uploaded_file.stream, f)
 
-        size = os.path.getsize(full_path)
+        try:
+            with open(full_path, 'wb') as f:
+                shutil.copyfileobj(uploaded_file.stream, f)
+        except Exception as e:
+            raise ModuleException("Failed to write file", {"error": str(e)}, 500)
 
-        # Creating file for load to DB
+        try:
+            size = os.path.getsize(full_path)
+        except OSError:
+            raise ModuleException("Failed to determine file size", {"data": ""}, 500)
+
         with self._pg.begin():
             db_file = File(
                 name=name,
@@ -153,20 +160,23 @@ class FileManager:
                 path=full_storage_path,
                 creation_date=datetime.datetime.utcnow(),
                 update_date=None,
-                comment=comment
+                comment=fields.get("comment", "")
             )
 
-            # Update DB
             self._pg.add(db_file)
             self._pg.flush()
             self._pg.refresh(db_file)
-            return db_file.dump()
+
+        return db_file.dump()
 
     def update_file(self, file_id) -> Dict[str, Any]:
         data = request.get_json()
-        name = data.get("name")
-        path = data.get("path")
-        comment = data.get("comment")
+        fields = data.get("fields", {})
+        name = fields.get("name")
+        path = fields.get("path")
+        comment = fields.get("comment")
+        if path:
+            path = os.path.normpath(path)
 
         with self._pg.begin():
             file = self.get_file_by_id(file_id, session=self._pg)
@@ -176,7 +186,7 @@ class FileManager:
             if name:
                 file.name = name
             if path:
-                file.path = path
+                file.path = os.path.join(self._st, path)
             if comment:
                 file.comment = comment
 

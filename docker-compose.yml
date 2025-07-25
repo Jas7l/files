@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     networks:
       - backend-network
 
@@ -21,6 +21,8 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8080:80"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     depends_on:
       - db
     networks:
@@ -31,6 +33,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    depends_on:
+      - db
     env_file:
       - .env
     volumes:
@@ -42,6 +46,8 @@ services:
   syncer:
     build: .
     command: python -m services.sync_runner
+    depends_on:
+      - db
     env_file:
       - .env
     volumes:
@@ -49,6 +55,9 @@ services:
     networks:
       - backend-network
     restart: always
+
+volumes:
+  pgdata:
 
 networks:
   backend-network:
