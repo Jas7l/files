@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify
 
 from injectors import services
 
-file_bp = Blueprint("file", __name__, url_prefix="/api/")
+file_bp = Blueprint("file", __name__, url_prefix="/routers/")
 
 
 @file_bp.route("/files/sync", methods=["POST"])

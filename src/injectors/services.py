@@ -1,7 +1,5 @@
 import os
 
-from flask_cors import CORS
-
 from config import settings
 from services.database import SessionLocal
 from services.file_manager import FileManager
@@ -12,13 +10,3 @@ def file_service() -> FileManager:
     os.makedirs(storage_path, exist_ok=True)
     session = SessionLocal()
     return FileManager(session, storage_path)
-
-
-def cors_service(app) -> CORS:
-    return CORS(
-        app,
-        origins=["http://localhost:5173"],
-        supports_credentials=True,
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["*"]
-    )
