@@ -4,7 +4,7 @@ from datetime import datetime
 
 import sqlalchemy as sa
 
-from .model import BaseOrmMappedModel
+from base_module.models import BaseOrmMappedModel
 
 SCHEMA_NAME = 'files'
 

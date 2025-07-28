@@ -1,13 +1,11 @@
 import flask
 
 from routers.files import file_bp
-from models.exception import ModuleException
-from models.model import BaseOrmMappedModel
-from services.database import engine
-
-BaseOrmMappedModel.REGISTRY.metadata.create_all(bind=engine)
+from injectors.connections import pg
+from base_module.models.exception import ModuleException
 
 app = flask.Flask(__name__)
+pg.setup(app)
 app.register_blueprint(file_bp)
 
 

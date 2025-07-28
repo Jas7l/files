@@ -4,21 +4,21 @@ import os
 import shutil
 from typing import Optional, List, Dict, Any, Union
 
+from base_module.models import ModuleException
+from config import settings
 from flask import request, send_file
-from sqlalchemy.orm import Session as PGSession
-
-from models.exception import ModuleException
 from models.file import File
+from sqlalchemy.orm import Session as PGSession
 
 
 class FileManager:
     def __init__(
             self,
-            pg_connection: PGSession,
-            storage_path: str
+            pg_connection: PGSession
     ):
         self._pg = pg_connection
-        self._st = storage_path
+        self._st = settings.STORAGE_PATH
+        os.makedirs(self._st, exist_ok=True)
 
     def sync_storage_and_db(self):
         # Get files from db
