@@ -42,7 +42,7 @@ class File(BaseOrmMappedModel):
     )
     update_date: typing.Optional[datetime] = dc.field(
         default_factory=datetime.utcnow,
-        metadata={"sa": sa.Column(sa.DateTime, server_default=sa.func.now(),onupdate=sa.func.now())}
+        metadata={"sa": sa.Column(sa.DateTime, server_default=sa.func.now(), onupdate=sa.func.now())}
     )
     comment: typing.Optional[str] = dc.field(
         default=None,

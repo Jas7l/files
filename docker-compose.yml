@@ -30,7 +30,7 @@ services:
 
   syncer:
     build: .
-    command: python -m services.files_sync
+    command: python -m scripts.files_sync
     depends_on:
       - db
     env_file:

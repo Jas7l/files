@@ -1,8 +1,8 @@
 import flask
 
-from routers.files import file_bp
-from injectors.connections import pg
 from base_module.models.exception import ModuleException
+from injectors.connections import pg
+from routers.files import file_bp
 
 app = flask.Flask(__name__)
 pg.setup(app)

@@ -4,11 +4,12 @@ import os
 import shutil
 from typing import Optional, List, Dict, Any, Union
 
+from flask import request, send_file
+from sqlalchemy.orm import Session as PGSession
+
 from base_module.models import ModuleException
 from config import settings
-from flask import request, send_file
 from models.file import File
-from sqlalchemy.orm import Session as PGSession
 
 
 class FileManager:
@@ -21,45 +22,50 @@ class FileManager:
         os.makedirs(self._st, exist_ok=True)
 
     def sync_storage_and_db(self):
-        # Get files from db
+        fs_files_path = {}
+        for root, _, files in os.walk(self._st):
+            for file in files:
+                full_path = os.path.normpath(os.path.join(root, file))
+                fs_files_path[full_path] = file
+
         with self._pg.begin():
             db_files = self._pg.query(File).all()
             db_files_path = {
                 os.path.normpath(os.path.join(file.path, f"{file.name}.{file.extension}")): file for file in db_files
             }
 
-            # Get files from system storage
-            fs_files_path = {}
-            for root, _, files in os.walk(self._st):
-                for file in files:
-                    full_path = os.path.normpath(os.path.join(root, file))
-                    fs_files_path[full_path] = file
+        files_for_delete = []
+        for path, file in db_files_path.items():
+            if path not in fs_files_path:
+                files_for_delete.append(file)
 
-            # Delete files from DB if not on disk
-            for path, file in db_files_path.items():
-                if path not in fs_files_path:
-                    self._pg.delete(file)
+        files_for_add = []
+        for path in fs_files_path:
+            if path not in db_files_path:
+                dir_path, filename = os.path.split(path)
+                name, extension = os.path.splitext(filename)
+                extension = extension.lstrip('.')
+                size = os.path.getsize(path)
 
-            # Add files to DB if on disk
-            for path in fs_files_path:
-                if path not in db_files_path:
-                    dir_path, filename = os.path.split(path)
-                    name, extension = os.path.splitext(filename)
-                    extension = extension.lstrip('.')
-                    size = os.path.getsize(path)
+                new_file = File(
+                    name=name,
+                    extension=extension,
+                    size=size,
+                    path=dir_path,
+                    creation_date=datetime.datetime.utcnow(),
+                    update_date=None,
+                    comment=None
+                )
+                files_for_add.append(new_file)
 
-                    new_file = File(
-                        name=name,
-                        extension=extension,
-                        size=size,
-                        path=dir_path,
-                        creation_date=datetime.datetime.utcnow(),
-                        update_date=None,
-                        comment=None
-                    )
-                    self._pg.add(new_file)
+        with self._pg.begin():
+            for file in files_for_delete:
+                self._pg.delete(file)
 
-        # Delete empty directories
+            for file in files_for_add:
+                self._pg.add(file)
+
+        # Удаляем пустые директории
         for root, _, _ in os.walk(self._st, topdown=False):
             if not os.listdir(root) and os.path.abspath(root) != os.path.abspath(self._st):
                 try:

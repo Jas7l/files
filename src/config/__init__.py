@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+
 from base_module.config import PgConfig
 
 
@@ -11,6 +12,8 @@ class Settings(BaseSettings):
 
     STORAGE_PATH: str = "/app/storage"
     DEBUG: bool = False
+
+    SYNC_INTERVAL: int = 3600
 
     @property
     def database_url(self):
@@ -26,5 +29,6 @@ class Settings(BaseSettings):
             database=self.POSTGRES_DB,
             debug=self.DEBUG,
         )
+
 
 settings = Settings()

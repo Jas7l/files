@@ -1,7 +1,7 @@
 import logging
+import time
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-
+from config import settings
 from injectors import services
 
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +21,8 @@ def sync_storages():
 
 if __name__ == "__main__":
     sync_storages()
-    scheduler = BlockingScheduler()
-    scheduler.add_job(sync_storages, "interval", hours=1)
+    interval = settings.SYNC_INTERVAL
     log.info("Scheduler started. Running sync every hour.")
-    scheduler.start()
+    while True:
+        sync_storages()
+        time.sleep(interval)

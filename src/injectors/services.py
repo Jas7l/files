@@ -1,8 +1,5 @@
-import os
-
-from config import settings
-from . import connections
 from services.file_manager import FileManager
+from . import connections
 
 
 def file_service() -> FileManager:

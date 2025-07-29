@@ -15,6 +15,7 @@ def sync_files():
     return jsonify({"detail": "Sync started in background"})
 
 
+# Для фильтрации по пути хранения files?path=my_path
 @file_bp.route("/files", methods=["GET"])
 def get_files():
     fs = services.file_service()
@@ -37,7 +38,6 @@ def download_file(file_id):
     return fs.download_file(file_id)
 
 
-# Route to upload a file
 @file_bp.route("/file", methods=["POST"])
 def upload_file():
     fs = services.file_service()
