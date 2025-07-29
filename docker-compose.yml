@@ -9,41 +9,32 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     networks:
       - backend-network
 
-  backend:
-    image:  files:latest
+  files:
+    image:  files:1.0.1
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     env_file:
       - .env
     volumes:
-      - ./src/storage:/app/storage
-      - ./src:/opt/project:cached
+      - ./storage:/app/storage
     networks:
       - backend-network
     restart: always
 
   syncer:
-    image:  files:latest
+    image:  files:1.0.1
     command: python -m scripts.files_sync
-    depends_on:
-      - db
     env_file:
       - .env
     volumes:
-      - ./src/storage:/app/storage
-      - ./src:/opt/project:cached
+      - ./storage:/app/storage
     networks:
       - backend-network
     restart: always
-
-volumes:
-  pgdata:
 
 networks:
   backend-network:

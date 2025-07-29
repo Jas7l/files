@@ -6,3 +6,4 @@ venv/
 **/storage/
 /pgadmin_data/
 /pgdata/
+config.yaml

@@ -56,8 +56,31 @@ networks:
   backend-network:
     driver: bridge
 ```
+### .env
+```dotenv
+DEBUG=True
+POSTGRES_USER=str
+POSTGRES_PASSWORD=str
+POSTGRES_DB=str
+POSTGRES_HOST=db
+POSTGRES_PORT=int
+```
 
-### FastAPI: port 8000
+## API
+
+### Загрузка файла
+
+`POST /api/files/`
+
+**Запрос**`form-data`
+
+
+
+
+
+
+
+
 ```
 @router.post("/api/files/sync") - синхронизация базы данных и локального хранилища
 @router.get("/api/files") - возвращает JSON со списком файлов из базы данных, ?path=mypath для фильтра по пути файла

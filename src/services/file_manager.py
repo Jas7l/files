@@ -8,7 +8,8 @@ from flask import request, send_file
 from sqlalchemy.orm import Session as PGSession
 
 from base_module.models import ModuleException
-from config import settings
+from base_module.models.logger import ClassesLoggerAdapter
+from config import config
 from models.file import File
 
 
@@ -18,7 +19,8 @@ class FileManager:
             pg_connection: PGSession
     ):
         self._pg = pg_connection
-        self._st = settings.STORAGE_PATH
+        self._logger = ClassesLoggerAdapter.create(self)
+        self._st = config.storage_path
         os.makedirs(self._st, exist_ok=True)
 
     def sync_storage_and_db(self):
@@ -71,7 +73,9 @@ class FileManager:
                 try:
                     os.rmdir(root)
                 except OSError:
+                    self._logger.warning(f"Не удаётся удалить {root}")
                     pass
+        self._logger.debug("Синхронизация прошла успешно")
 
     def get_all_files(self) -> List[Dict[str, Any]]:
         path = request.args.get("path")
@@ -80,6 +84,7 @@ class FileManager:
             if path:
                 query = query.filter(File.path.like(f"%{path}%"))
             files = query.all()
+            self._logger.debug("Файлы успешно получены")
             return [file.dump() for file in files]
 
     def get_file_by_id(self, input_id: int, session: Optional[PGSession] = None) -> Union[Dict[str, Any] | File]:
@@ -89,6 +94,7 @@ class FileManager:
 
             if file is None:
                 raise ModuleException("File not found", {"data": ""}, 400)
+            self._logger.debug("Файл успешно получен", extra={"id": input_id})
             return file.dump()
 
         file = session.query(File).get(input_id)
@@ -103,6 +109,7 @@ class FileManager:
             file = self._pg.query(File).filter(File.name == name, File.extension == extension).first()
             if not file:
                 raise ModuleException("File not found", {"data": ""}, 400)
+            self._logger.debug("Файлы успешно получены")
             return file.dump()
 
     def download_file(self, file_id: int):
@@ -110,6 +117,7 @@ class FileManager:
         file_path = os.path.join(file.get("path"), f"{file.get('name')}.{file.get('extension')}")
         if not os.path.exists(file_path):
             raise ModuleException("File not found", {"data": ""}, 400)
+        self._logger.debug("Файл найден, начинаем скачивание", extra={"id":file_id})
         return send_file(
             file_path,
             as_attachment=True,
@@ -168,6 +176,7 @@ class FileManager:
             self._pg.add(db_file)
             self._pg.flush()
             self._pg.refresh(db_file)
+            self._logger.debug("Файл успешно загружен")
 
         return db_file.dump()
 
@@ -202,6 +211,7 @@ class FileManager:
             self._pg.add(file)
             self._pg.flush()
             self._pg.refresh(file)
+            self._logger.debug("Файл успешно обнавлён", extra={"id": file_id})
             return file.dump()
 
     def delete_file(self, file_id: int) -> Dict[str, Any]:
@@ -213,4 +223,5 @@ class FileManager:
                 os.remove(full_path)
 
             self._pg.delete(file)
+            self._logger.debug("Файл успешно удалён", extra={"id": file_id})
             return file.dump()

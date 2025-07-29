@@ -1,34 +1,20 @@
-from pydantic_settings import BaseSettings
+import dataclasses as dc
+import os
+
+import yaml
 
 from base_module.config import PgConfig
+from base_module.models import Model
 
 
-class Settings(BaseSettings):
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    POSTGRES_HOST: str
-    POSTGRES_PORT: int
-
-    STORAGE_PATH: str = "/app/storage"
-    DEBUG: bool = False
-
-    SYNC_INTERVAL: int = 3600
-
-    @property
-    def database_url(self):
-        return (f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-                f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
-
-    def to_pg_config(self) -> PgConfig:
-        return PgConfig(
-            user=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,
-            host=self.POSTGRES_HOST,
-            port=self.POSTGRES_PORT,
-            database=self.POSTGRES_DB,
-            debug=self.DEBUG,
-        )
+@dc.dataclass
+class AppConfig(Model):
+    pg: PgConfig
+    storage_path: str = dc.field(default="/app/storage")
+    sync_interval: int = dc.field(default=3600)
+    debug: bool = dc.field(default=False)
 
 
-settings = Settings()
+config: AppConfig = AppConfig.load(
+    yaml.safe_load(open(os.getenv('YAML_PATH', "/app/config.yaml"))) or {}
+)

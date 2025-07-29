@@ -1,7 +1,7 @@
 import logging
 import time
 
-from config import settings
+from config import config
 from injectors import services
 
 logging.basicConfig(level=logging.INFO)
@@ -21,8 +21,8 @@ def sync_storages():
 
 if __name__ == "__main__":
     sync_storages()
-    interval = settings.SYNC_INTERVAL
-    log.info("Scheduler started. Running sync every hour.")
+    interval = config.sync_interval
+    log.info("Running sync every hour.")
     while True:
         sync_storages()
         time.sleep(interval)
