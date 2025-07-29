@@ -1,4 +1,62 @@
-## Содержимое проекта
+# Сервис хранения файлов
+
+## Установка
+
+### docker-compose.yml
+
+```yaml
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend-network
+
+  backend:
+    image:  files:latest
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - ./src/storage:/app/storage
+      - ./src:/opt/project:cached
+    networks:
+      - backend-network
+    restart: always
+
+  syncer:
+    image:  files:latest
+    command: python -m scripts.files_sync
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - ./src/storage:/app/storage
+      - ./src:/opt/project:cached
+    networks:
+      - backend-network
+    restart: always
+
+volumes:
+  pgdata:
+
+networks:
+  backend-network:
+    driver: bridge
+```
+
 ### FastAPI: port 8000
 ```
 @router.post("/api/files/sync") - синхронизация базы данных и локального хранилища

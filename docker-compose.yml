@@ -14,8 +14,7 @@ services:
       - backend-network
 
   backend:
-    build:
-      dockerfile: Dockerfile
+    image:  files:latest
     ports:
       - "8000:8000"
     depends_on:
@@ -24,12 +23,13 @@ services:
       - .env
     volumes:
       - ./src/storage:/app/storage
+      - ./src:/opt/project:cached
     networks:
       - backend-network
     restart: always
 
   syncer:
-    build: .
+    image:  files:latest
     command: python -m scripts.files_sync
     depends_on:
       - db
@@ -37,6 +37,7 @@ services:
       - .env
     volumes:
       - ./src/storage:/app/storage
+      - ./src:/opt/project:cached
     networks:
       - backend-network
     restart: always

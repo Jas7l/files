@@ -1,14 +1,25 @@
-build:
-	docker-compose build
+IMAGE_NAME = files
+DOCKERFILE = Dockerfile
+CONTEXT = .
 
-up:
-	docker-compose up -d
+VERSION_FILE = $(CONTEXT)/version.txt
+TAG = $(shell [ -f $(VERSION_FILE) ] && cat $(VERSION_FILE) || echo latest)
+
+IMAGE = $(IMAGE_NAME):$(TAG)
+
+all: build
+
+build:
+	@docker build -f $(DOCKERFILE) -t $(IMAGE) $(CONTEXT)
+
+pull:
+	@docker pull $(IMAGE)
+
+push:
+	@docker push $(IMAGE)
+
+run:
+	@docker-compose up
 
 down:
-	docker-compose down
-
-logs:
-	docker-compose logs -f backend
-
-exec:
-	docker-compose exec backend bash
+	@docker-compose down
