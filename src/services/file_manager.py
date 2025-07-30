@@ -84,6 +84,8 @@ class FileManager:
             if path:
                 query = query.filter(File.path.like(f"%{path}%"))
             files = query.all()
+            if files is None:
+                raise ModuleException("File not found", {"data": ""}, 401)
             self._logger.debug("Файлы успешно получены")
             return [file.dump() for file in files]
 
@@ -93,7 +95,7 @@ class FileManager:
                 file = self._pg.query(File).get(input_id)
 
             if file is None:
-                raise ModuleException("File not found", {"data": ""}, 400)
+                raise ModuleException("File not found", {"data": ""}, 401)
             self._logger.debug("Файл успешно получен", extra={"id": input_id})
             return file.dump()
 
@@ -108,7 +110,7 @@ class FileManager:
                 raise ModuleException()
             file = self._pg.query(File).filter(File.name == name, File.extension == extension).first()
             if not file:
-                raise ModuleException("File not found", {"data": ""}, 400)
+                raise ModuleException("File not found", {"data": ""}, 401)
             self._logger.debug("Файлы успешно получены")
             return file.dump()
 
@@ -116,7 +118,7 @@ class FileManager:
         file = self.get_file_by_id(file_id)
         file_path = os.path.join(file.get("path"), f"{file.get('name')}.{file.get('extension')}")
         if not os.path.exists(file_path):
-            raise ModuleException("File not found", {"data": ""}, 400)
+            raise ModuleException("File not found", {"data": ""}, 401)
         self._logger.debug("Файл найден, начинаем скачивание", extra={"id":file_id})
         return send_file(
             file_path,
@@ -147,7 +149,7 @@ class FileManager:
         full_path = os.path.join(full_storage_path, filename)
 
         if os.path.exists(full_path):
-            raise ModuleException("File already exists", {"data": ""}, 400)
+            raise ModuleException("File already exists", {"data": ""}, 401)
 
         os.makedirs(full_storage_path, exist_ok=True)
 
@@ -204,7 +206,7 @@ class FileManager:
             if old_path != new_full_path:
                 os.makedirs(file.path, exist_ok=True)
                 if not os.path.exists(old_path):
-                    raise ModuleException("File not found", {"data": ""}, 400)
+                    raise ModuleException("File not found", {"data": ""}, 401)
                 os.rename(old_path, new_full_path)
 
             file.update_date = datetime.datetime.utcnow()
@@ -217,6 +219,8 @@ class FileManager:
     def delete_file(self, file_id: int) -> Dict[str, Any]:
         with self._pg.begin():
             file = self.get_file_by_id(file_id, session=self._pg)
+            if file is None:
+                raise ModuleException("File not found", {"data": ""}, 401)
             full_path = os.path.join(file.path, f"{file.name}.{file.extension}")
 
             if os.path.exists(full_path):

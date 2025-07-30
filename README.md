@@ -56,75 +56,155 @@ networks:
   backend-network:
     driver: bridge
 ```
+
+### config.yaml
+```yaml
+pg:
+  host: db
+  port: 5432
+  user: postgres
+  password: postgres
+  database: my_db
+
+storage_path: /app/storage
+sync_interval: 3600
+debug: True
+
+```
+
 ### .env
 ```dotenv
-DEBUG=True
-POSTGRES_USER=str
-POSTGRES_PASSWORD=str
-POSTGRES_DB=str
-POSTGRES_HOST=db
-POSTGRES_PORT=int
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=my_db
 ```
+
+### Запуск
+`docker build -f Dockerfile -t files:version .`
+PyCharm Debug/Run 
 
 ## API
 
 ### Загрузка файла
 
-`POST /api/files/`
+`POST /api/file/`
 
-**Запрос**`form-data`
+**Запрос** `multipart/form-data`
+- `fields`: JSON-строка с полями:
+  - `path`: путь хранения файла (опционально)
+  - `comment`: комментарий (опционально)
+- `file`: бинарный файл
 
+Если поле `path` не указано, файл сохранится в storage
+Если поле `comment` не указано, по умолчанию запишет пустую строку
 
+**Ответ**: `application/json` `200 OK`
 
-
-
-
-
-
-```
-@router.post("/api/files/sync") - синхронизация базы данных и локального хранилища
-@router.get("/api/files") - возвращает JSON со списком файлов из базы данных, ?path=mypath для фильтра по пути файла
-@router.get("/api/files/{file_id}) - возвращает файл из базы данных по ID
-@router.get("/api/files/{file_id}/download) - скачивает файл с указанным ID на локальный компьютер 
-@router.post("/api/files") - загружает файл в базу данных и на локальное хранилище
-@router.patch("/api/files/{file_id}) - даёт возможность обновить некоторые свойства файла
-@router.delete("/api/files/{file_id}) - удаляет файл по id
-```
-
-### Postgres data base: port 5432
-#### Настройка в .env
-
-### pgAdmin 4: port 8080
-#### Для просмотра базы данных и взаимодействия с ней
-
-## Установка и запуск
-### Клонирование репозитория
-```bash
-git clone https://github.com/Jas7l/backend-app.git
-cd backend-app
-```
-
-### Настройка .env
-#### Создание .env
-```bash
-New-Item -Name ".env" -ItemType "File"
-```
-#### Настройки для дебага
-```bash
-STORAGE_PATH=./storage
-DEBUG=True
-APP_NAME=File Manager API
-VERSION=1.0.0
-POSTGRES_USER=user_name
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=db_name
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
+```json5
+{
+    // Комментарий
+    "comment": "",
+    // Дата создания
+    "creation_date": "2025-07-30T08:41:26.006024",
+    // Расширение файла
+    "extension": "css",
+    // id файла в базе данных
+    "id": 3,
+    // Имя файла
+    "name": "styles",
+    // Путь хранения
+    "path": "/app/storage/.",
+    // Размер файла
+    "size": 2947,
+    // Дата обновления
+    "update_date": "2025-07-30T08:41:26.011264"
+}
 ```
 
-### Запуск Docker
-```bash
-docker compose build --no-cache
-docker compose up
-```
+**Ошибки**:
+`400` - ошибки в параметрах запроса.
+`401` - файл уже существует
+`500` - ошибка при записи файла.
 
+### Список файлов с фильтрацией по пути хранения
+
+`GET /api/files?path=/`
+
+Где:
+* `path` - путь к файлу, для фильтрации
+
+**Ответ** `application/json` `200 OK`
+
+Аналогичен ответу при загрузке файла, вернёт множество файлов
+
+**Ошибки**:
+`401` - файл не найден.
+`500` - прочие ошибки.
+
+### Информация о файле
+
+`GET /api/file/<int:file_id>`
+
+Где:
+* `file_id` - id файла в базе данных
+
+**Ответ** `application/json` `200 OK`
+
+Аналогичен ответу при загрузке файла
+
+**Ошибки**:
+`401` - файл не найден.
+`500` - прочие ошибки.
+
+### Загрузка файла
+
+`GET /api/file/<int:file_id>/download/`
+
+Где:
+* `file_id` - id файла в базе данных
+
+**Ответ** `application/octet-stream` `200 OK`
+
+**Ошибки**:
+`401` - файл не найден.
+`500` - прочие ошибки.
+
+### Обновление файла
+
+`PATCH /api/file/<int:file_id>/`
+
+**Запрос** `application/json`
+```json5
+{
+    "fields": {
+        // Новое имя файла
+        "name": "str",
+        // Новый путь хранения
+        "path": "str",
+        // Новый комментарий
+        "comment": "str"
+    }
+}
+```
+Все поля являются необязательными, можно менять произвольное количество полей
+
+**Ответ** `application/json` `200 OK`
+
+Аналогичен ответу при загрузке файла
+
+**Ошибки**:
+`401` - файл не найден.
+`500` - прочие ошибки.
+
+### Удаление файла
+`DELETE /api/file/<int:file_id>/`
+Где:
+`file_id` - id файла в базе данных
+
+**Ответ** `application/json` `200 OK`
+
+Аналогичен ответу при загрузке файла
+
+**Ошибки**:
+`401` - файл не найден.
+`500` - прочие ошибки.
