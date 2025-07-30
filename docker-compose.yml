@@ -17,8 +17,6 @@ services:
     image:  files:1.0.1
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     volumes:
       - ./storage:/app/storage
     networks:
@@ -28,8 +26,6 @@ services:
   syncer:
     image:  files:1.0.1
     command: python -m scripts.files_sync
-    env_file:
-      - .env
     volumes:
       - ./storage:/app/storage
     networks:

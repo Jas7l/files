@@ -17,7 +17,9 @@ class File(BaseOrmMappedModel):
 
     id: int = dc.field(
         default=None,
-        metadata={"sa": sa.Column(sa.Integer, autoincrement=True, primary_key=True)}
+        metadata={"sa": sa.Column(
+            sa.Integer, autoincrement=True, primary_key=True
+        )}
     )
     name: str = dc.field(
         default=None,
@@ -42,7 +44,9 @@ class File(BaseOrmMappedModel):
     )
     update_date: typing.Optional[datetime] = dc.field(
         default_factory=datetime.utcnow,
-        metadata={"sa": sa.Column(sa.DateTime, server_default=sa.func.now(), onupdate=sa.func.now())}
+        metadata={"sa": sa.Column(
+            sa.DateTime, server_default=sa.func.now(), onupdate=sa.func.now()
+        )}
     )
     comment: typing.Optional[str] = dc.field(
         default=None,

@@ -10,8 +10,6 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 
 COPY uwsgi.ini /app/
 
-COPY config.yaml /app/
-
 COPY . .
 WORKDIR /app/src
 
