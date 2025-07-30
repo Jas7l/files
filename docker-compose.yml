@@ -9,58 +9,32 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     networks:
       - backend-network
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin_container
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@mail.ru
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "8080:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    depends_on:
-      - db
-    networks:
-      - backend-network
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+  files:
+    image:  files:1.0.1
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     env_file:
       - .env
     volumes:
-      - ./backend/storage:/app/storage
+      - ./storage:/app/storage
     networks:
       - backend-network
-    restart: unless-stopped
+    restart: always
 
   syncer:
-    build: ./backend
-    command: python -m app.sync_runner
-    depends_on:
-      - backend
-      - db
+    image:  files:1.0.1
+    command: python -m scripts.files_sync
     env_file:
       - .env
     volumes:
-      - ./backend/storage:/app/storage
+      - ./storage:/app/storage
     networks:
       - backend-network
-    restart: unless-stopped
-
-volumes:
-  postgres-data:
-  pgadmin-data:
+    restart: always
 
 networks:
   backend-network:

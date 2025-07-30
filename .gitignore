@@ -4,3 +4,6 @@ __pycache__/
 venv/
 .env
 **/storage/
+/pgadmin_data/
+/pgdata/
+**/config.yaml
