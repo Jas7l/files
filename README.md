@@ -26,6 +26,7 @@ services:
       - "8000:8000"
     volumes:
       - ./storage:/app/storage
+      - ./config.yaml:/config.yaml
     networks:
       - backend-network
     restart: always
@@ -35,6 +36,7 @@ services:
     command: python -m scripts.files_sync
     volumes:
       - ./storage:/app/storage
+      - ./config.yaml:/config.yaml
     networks:
       - backend-network
     restart: always
