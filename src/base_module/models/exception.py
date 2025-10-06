@@ -5,6 +5,7 @@ class ModuleException(Exception):
 
     def __init__(self, msg: str = '', data: dict = None, code: int = 500):
         """."""
+
         self.msg = msg
         self.data = data
         self.code = code

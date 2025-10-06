@@ -11,7 +11,7 @@ from ..models import (
     ModuleException,
     ClassesLoggerAdapter,
     ThreadIsolatedSingleton,
-    BaseOrmMappedModel
+    BaseOrmMappedModel,
 )
 
 
@@ -32,9 +32,10 @@ class PgConnectionInj(metaclass=ThreadIsolatedSingleton):
             init_error_timeout: int = 5,
             acquire_attempts: int = 5,
             acquire_error_timeout: int = 5,
-            init_statements: list = None
+            init_statements: list = None,
     ):
         """."""
+
         self._conf = conf
         self._init_error_timeout = init_error_timeout
         self._acquire_attempts = acquire_attempts
@@ -59,7 +60,7 @@ class PgConnectionInj(metaclass=ThreadIsolatedSingleton):
                 self._logger.warn(
                     'Ошибка инициализации сессии, ожидание повтора',
                     exc_info=True,
-                    extra={'e': e, 'cur': i, 'max': self._acquire_attempts}
+                    extra={'e': e, 'cur': i, 'max': self._acquire_attempts},
                 )
                 time.sleep(self._acquire_error_timeout)
 
@@ -92,10 +93,10 @@ class PgConnectionInj(metaclass=ThreadIsolatedSingleton):
                 self._conf.password,
                 self._conf.host,
                 self._conf.port,
-                self._conf.database
+                self._conf.database,
             ),
             echo=self._conf.debug,
-            query_cache_size=0
+            query_cache_size=0,
         )
         if not database_exists(engine.url):
             create_database(engine.url)
@@ -130,7 +131,7 @@ class PgConnectionInj(metaclass=ThreadIsolatedSingleton):
             except Exception as e:
                 self._logger.error(
                     'Ошибка инициализации базы данны, ожидание',
-                    exc_info=True, extra={'e': e}
+                    exc_info=True, extra={'e': e},
                 )
                 time.sleep(self._init_error_timeout)
 

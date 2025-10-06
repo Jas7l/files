@@ -38,7 +38,10 @@ class ValuedEnum(Enum):
                 return value
 
         if not safe:
-            raise ModelException(f'Недопустимое значение: {key}', code=400)
+            raise ModelException(
+                f'Недопустимое значение: {key}',
+                code=400,
+            )
 
     @classmethod
     def from_value(cls, value, safe: bool = True):
@@ -49,7 +52,10 @@ class ValuedEnum(Enum):
                 return num
 
         if value is not None and not safe:
-            raise ModelException(f'Недопустимое значение: {value}', code=400)
+            raise ModelException(
+                f'Недопустимое значение: {value}',
+                code=400,
+            )
 
     @classmethod
     def from_name(cls, name: str):
@@ -89,11 +95,11 @@ class Model:
     SCHEMAS: t.ClassVar = {
         datetime: dataclass_factory.Schema[datetime](
             parser=lambda _: iso_loader(_, datetime),
-            serializer=datetime.isoformat
+            serializer=datetime.isoformat,
         ),
         date: dataclass_factory.Schema(
             parser=lambda _: default_loader(_, date, date.fromisoformat),
-            serializer=date.isoformat
+            serializer=date.isoformat,
         ),
     }
     FACTORY: t.ClassVar = dataclass_factory.Factory(schemas=SCHEMAS)
@@ -120,7 +126,7 @@ class Model:
         except Exception as e:
             raise ModelException(
                 f'Ошибка загрузки модели {cls.__name__}',
-                data={'e': str(e), 'declarer': cls.__name__}
+                data={'e': str(e), 'declarer': cls.__name__},
             ) from e
 
     def validate(self):
@@ -167,7 +173,8 @@ def view(cls):
 
 class BaseOrmMappedModel(Model):
     """."""
-    __sa_dataclass_metadata_key__: t.ClassVar = "sa"
+
+    __sa_dataclass_metadata_key__: t.ClassVar = 'sa'
     __tablename__: t.ClassVar = None
     REGISTRY: t.ClassVar = orm.registry()
 
@@ -194,7 +201,7 @@ class MetaModel(Model, t.Generic[_MT], abc.ABC):
             except Exception as e:
                 raise ModelException(
                     'Ошибка загрузки модели метаданных',
-                    data={'e': e, 'metadata': metadata, 'cls': _MT}
+                    data={'e': e, 'metadata': metadata, 'cls': _MT},
                 )
 
     def load_meta(self, data):

@@ -9,20 +9,24 @@ log = logging.getLogger(__name__)
 
 
 def sync_storages():
-    log.info("Starting sync")
-    fs = services.file_service()
+    """Вызов метода синхронизации сервиса files"""
+
+    log.info('Starting sync')
+    fs = services.files_service()
     try:
         fs.sync_storage_and_db()
-        log.info("Sync completed")
+        log.info('Sync completed')
     except Exception as e:
-        log.error(f"Sync failed: {e}")
+        log.error(f'Sync failed: {e}')
         raise
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    """Запуск регулярной синхронизации хранилища и БД"""
+
     sync_storages()
     interval = config.sync_interval
-    log.info("Running sync every hour.")
+    log.info('Running sync every hour.')
     while True:
         sync_storages()
         time.sleep(interval)

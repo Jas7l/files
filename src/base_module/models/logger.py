@@ -33,11 +33,11 @@ class LoggerConfig(Model):
 
     root_log_level: t.Union[str, int] = dc.field(
         default='INFO',
-        metadata={'type': str}
+        metadata={'type': str},
     )
     modules: t.List[ModuleLoggingConfig] = dc.field(
         default_factory=list,
-        metadata={'type': list, 'items_type': ModuleLoggingConfig}
+        metadata={'type': list, 'items_type': ModuleLoggingConfig},
     )
     logstash: t.Optional[SyslogProviderConfig] = dc.field(default=None)
 
@@ -106,6 +106,7 @@ class ClassesLoggerAdapter(logging.LoggerAdapter):
 
     def __init__(self, **kwargs):
         """."""
+
         super().__init__(logging.getLogger(), kwargs.pop('extra', {}))
 
     @classmethod

@@ -6,6 +6,6 @@ from .model import (
     BaseOrmMappedModel,
     ValuedEnum,
     view,
-    MetaModel
+    MetaModel,
 )
 from .singletons import ThreadIsolatedSingleton, Singleton

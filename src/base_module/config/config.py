@@ -5,7 +5,7 @@ from ..models import Model
 
 @dc.dataclass
 class PgConfig(Model):
-    """."""
+    """Конфиг настройки postgres"""
 
     host: str = dc.field()
     port: int = dc.field()

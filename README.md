@@ -8,22 +8,22 @@
 services:
   db:
     image: postgres:15
-    container_name: postgres_container
+    container_name: my_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "5442:5432"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     networks:
       - backend-network
 
   files:
-    image:  files:1.0.1
+    image: files:1.0.1
     ports:
-      - "8000:8000"
+      - "8020:8000"
     volumes:
       - ./storage:/app/storage
       - ./config.yaml:/config.yaml
@@ -32,7 +32,7 @@ services:
     restart: always
 
   syncer:
-    image:  files:1.0.1
+    image: files:1.0.1
     command: python -m scripts.files_sync
     volumes:
       - ./storage:/app/storage
@@ -76,7 +76,7 @@ PyCharm Debug/Run
 
 ### Загрузка файла
 
-`POST /api/file/`
+`POST /api/files`
 
 **Запрос** `multipart/form-data`
 - `fields`: JSON-строка с полями:
@@ -117,7 +117,7 @@ PyCharm Debug/Run
 
 ### Список файлов с фильтрацией по пути хранения
 
-`GET /api/files?path=/`
+`GET /api/files?path=`
 
 Где:
 * `path` - путь к файлу, для фильтрации
@@ -132,7 +132,7 @@ PyCharm Debug/Run
 
 ### Информация о файле
 
-`GET /api/file/<int:file_id>`
+`GET /api/files/<int:file_id>`
 
 Где:
 * `file_id` - id файла в базе данных
@@ -147,7 +147,7 @@ PyCharm Debug/Run
 
 ### Загрузка файла
 
-`GET /api/file/<int:file_id>/download/`
+`GET /api/files/<int:file_id>/download`
 
 Где:
 * `file_id` - id файла в базе данных
@@ -160,7 +160,7 @@ PyCharm Debug/Run
 
 ### Обновление файла
 
-`PATCH /api/file/<int:file_id>/`
+`PATCH /api/files/<int:file_id>`
 
 **Запрос** `application/json`
 ```json5
@@ -186,7 +186,7 @@ PyCharm Debug/Run
 `500` - прочие ошибки.
 
 ### Удаление файла
-`DELETE /api/file/<int:file_id>/`
+`DELETE /api/files/<int:file_id>`
 Где:
 `file_id` - id файла в базе данных
 
