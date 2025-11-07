@@ -1,4 +1,5 @@
 import flask
+from flask_cors import CORS
 
 from base_module.models.exception import ModuleException
 from base_module.models.logger import setup_logging, LoggerConfig
@@ -9,6 +10,7 @@ app = flask.Flask(__name__)
 setup_logging(LoggerConfig(root_log_level='DEBUG'))
 pg.setup(app)
 app.register_blueprint(file_bp)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 
 @app.errorhandler(ModuleException)
