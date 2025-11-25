@@ -1,0 +1,164 @@
+/* File Tree Styles */
+.file-tree-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--color-text-light);
+}
+
+.file-tree-container {
+  padding: 0;
+}
+
+/* File Tree Node */
+.tree-node {
+  user-select: none;
+}
+
+.tree-node-content {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: calc(var(--radius) - 4px);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  gap: 0.75rem;
+}
+
+.tree-node-content:hover {
+  background: #dcfce7;
+}
+
+.tree-node-content.is-folder {
+  font-weight: 600;
+}
+
+.folder-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: 0;
+  transition: transform 0.2s ease;
+}
+
+.folder-toggle.expanded {
+  transform: rotate(90deg);
+}
+
+.folder-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.node-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  /* Changed default icon color to primary green */
+  color: var(--color-primary);
+}
+
+/* Changed folder icon color to lime green */
+.node-icon.folder {
+  color: #84cc16;
+}
+
+/* Changed PDF icon color to dark green */
+.node-icon.file-pdf {
+  color: #15803d;
+}
+
+/* Changed image icon color to emerald green */
+.node-icon.file-image {
+  color: #059669;
+}
+
+/* Changed code icon color to teal green */
+.node-icon.file-code {
+  color: #14b8a6;
+}
+
+/* Changed archive icon color to lime green */
+.node-icon.file-archive {
+  color: #65a30d;
+}
+
+.node-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.node-name {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.node-comment {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-details {
+  font-size: 0.75rem;
+  /* Changed details text color to green spectrum */
+  color: #16a34a;
+  margin-top: 0.25rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.node-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.node-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-right: 1rem;
+}
+
+.file-count {
+  background: #dcfce7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.tree-children {
+  padding-left: 2rem;
+  margin-top: 0.25rem;
+}
+
+/* File Item */
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.file-item:hover {
+  background: #dcfce7;
+}
