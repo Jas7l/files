@@ -14,7 +14,7 @@ services:
       - backend-network
 
   files:
-    image: files:1.0.1
+    image: files:1.0.2
     ports:
       - "8020:8000"
     volumes:
@@ -25,11 +25,20 @@ services:
     restart: always
 
   syncer:
-    image: files:1.0.1
+    image: files:1.0.2
     command: python -m scripts.files_sync
     volumes:
       - ./storage:/app/storage
       - ./config.yaml:/config.yaml
+    networks:
+      - backend-network
+    restart: always
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
     networks:
       - backend-network
     restart: always
