@@ -3,6 +3,9 @@
 import { useState } from "react"
 import type { FileItem } from "../types"
 import EditFileModal from "./EditFileModal"
+// Импортируем функции из правильных файлов
+import { deleteFile, downloadFile } from "../api/files"
+import { apiFetch } from "../api/http" // apiFetch из http.ts
 
 interface FileActionsProps {
   file: FileItem
@@ -16,20 +19,8 @@ export default function FileActions({ file, onFileDeleted, onFileUpdated }: File
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(`http://localhost:8020/api/files/${file.id}/download`)
-      if (!response.ok) {
-        throw new Error("Ошибка при скачивании файла")
-      }
-
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = file.name
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      // Используем функцию из api/files.ts
+      await downloadFile(file.id)
     } catch (error) {
       console.error("Ошибка при скачивании:", error)
       alert("Не удалось скачать файл")
@@ -43,14 +34,8 @@ export default function FileActions({ file, onFileDeleted, onFileUpdated }: File
 
     setIsDeleting(true)
     try {
-      const response = await fetch(`http://localhost:8020/api/files/${file.id}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        throw new Error("Ошибка при удалении файла")
-      }
-
+      // Используем функцию из api/files.ts
+      await deleteFile(file.id)
       onFileDeleted()
     } catch (error) {
       console.error("Ошибка при удалении:", error)

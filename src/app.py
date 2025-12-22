@@ -20,7 +20,13 @@ pg.setup(app)
 
 app.register_blueprint(file_bp)
 app.register_blueprint(auth_bp)
-CORS(app, resources={r'/api/*': {'origins': '*'}})
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "http://localhost:5173"}},
+    supports_credentials=True,
+    expose_headers=["Content-Disposition"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 
 @app.errorhandler(ModuleException)

@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import shutil
+import uuid
 from typing import Optional, List, Dict, Any, Union
 
 from base_module.models import ModuleException
@@ -20,104 +21,107 @@ class FilesService:
         self._pg = pg_connection
         self._user_id = user_id
         self._logger = ClassesLoggerAdapter.create(self)
+
         base_path = config.storage_path
         if self._user_id is not None:
             self._st = os.path.join(base_path, str(self._user_id))
         else:
             self._st = base_path
+
         os.makedirs(self._st, exist_ok=True)
 
     def sync_storage_and_db(self):
-        """Глобальная синхронизация хранилища и БД"""
+        """Глобальная синхронизация хранилища и БД
+        Только удаляет записи из БД, если файлов нет на диске
+        Не добавляет новые записи в БД (файлы добавляются только через API)
+        """
 
-        local_files = {}
+        # Собираем все stored_name (UUID) файлов на диске
+        disk_stored_names = set()
+
         for root, _, files in os.walk(config.storage_path):
             for filename in files:
                 full_path = os.path.normpath(os.path.join(root, filename))
                 dir_path, fname = os.path.split(full_path)
+
+                # Разделяем имя и расширение
                 name, extension = os.path.splitext(fname)
                 extension = extension.lstrip('.')
 
-                try:
-                    relative_parts = os.path.relpath(
-                        dir_path, config.storage_path
-                    ).split(os.sep)
-                    owner_id = int(relative_parts[0])
-                    relative_path = (
-                        os.path.join(*relative_parts[1:])
-                        if len(relative_parts) > 1 else ''
-                    )
-                except (ValueError, IndexError):
-                    owner_id = None
-                    relative_path = os.path.relpath(
-                        dir_path, config.storage_path
+                # Проверяем, является ли имя UUID (32 hex символа)
+                # Если да - добавляем в список
+                if len(name) == 32 and all(
+                        c in '0123456789abcdef' for c in name):
+                    disk_stored_names.add(name)
+                else:
+                    # Если файл не в UUID формате, пропускаем его
+                    # (возможно, старый файл или системный файл)
+                    self._logger.warning(
+                        f'Файл не в UUID формате, пропускаем: {filename}',
+                        extra={'path': full_path}
                     )
 
-                key = (owner_id, relative_path, name, extension)
-                local_files[key] = full_path
+        self._logger.info(
+            f'Найдено {len(disk_stored_names)} файлов на диске в UUID формате'
+        )
 
         with self._pg.begin():
+            # Получаем все файлы из БД
             db_files = self._pg.query(File).all()
-            db_files_map = {
-                (f.owner_id, f.relative_path, f.name, f.extension): f
-                for f in db_files
-            }
 
-            for key, file in db_files_map.items():
-                if key not in local_files:
-                    self._pg.delete(file)
+            self._logger.info(f'Найдено {len(db_files)} записей в БД')
 
-            for key, full_path in local_files.items():
-                if key not in db_files_map:
-                    owner_id, relative_path, name, extension = key
-                    size = os.path.getsize(full_path)
-
-                    if owner_id is not None:
-                        path = os.path.join(config.storage_path, str(owner_id))
-                    else:
-                        path = config.storage_path
-
-                    new_file = File(
-                        name=name,
-                        extension=extension,
-                        size=size,
-                        path=path,
-                        relative_path=relative_path,
-                        owner_id=owner_id,
-                        creation_date=datetime.datetime.utcnow(),
-                        update_date=None,
-                        comment=None,
+            # Удаляем записи, которых нет на диске
+            deleted_count = 0
+            for file in db_files:
+                if file.stored_name not in disk_stored_names:
+                    self._logger.info(
+                        'Удаление записи из БД (файл отсутствует на диске)',
+                        extra={
+                            'id': file.id,
+                            'stored_name': file.stored_name,
+                            'name': file.name,
+                            'path': file.relative_path
+                        }
                     )
-                    self._pg.add(new_file)
+                    self._pg.delete(file)
+                    deleted_count += 1
+
+            self._logger.info(f'Удалено {deleted_count} записей из БД')
 
         for root, _, _ in os.walk(config.storage_path, topdown=False):
             if (
-                not os.listdir(root)
-                and os.path.abspath(root) != os.path.abspath(config.storage_path)
+                    not os.listdir(root)
+                    and os.path.abspath(root) != os.path.abspath(
+                config.storage_path)
             ):
                 try:
                     os.rmdir(root)
                 except OSError:
-                    self._logger.warning(f'Не удаётся удалить {root}')
+                    self._logger.warning(
+                        f'Не удаётся удалить пустую директорию {root}')
 
         self._logger.debug('Синхронизация прошла успешно')
 
     def get_files(self) -> List[Dict[str, Any]]:
-        """Получение списка файлов"""
+        """Получение списка файлов с расширенным поиском"""
 
-        path_filter = request.args.get('path')
-
+        path_filter = request.args.get('path', '').lower()
         with self._pg.begin():
             query = self._pg.query(File).filter(File.owner_id == self._user_id)
+
             if path_filter:
                 query = query.filter(
-                    File.relative_path.like(f'%{path_filter}%')
+                    (File.relative_path.ilike(f'%{path_filter}%')) |
+                    (File.name.ilike(f'%{path_filter}%')) |
+                    (File.extension.ilike(f'%{path_filter}%'))
                 )
+
             files = query.all()
             if not files:
                 raise ModuleException('No files found', {'data': ''}, 404)
-            self._logger.debug('Файлы успешно получены')
 
+            self._logger.debug('Файлы успешно получены')
             return [file.dump() for file in files]
 
     def get_file_by_id(
@@ -134,11 +138,11 @@ class FilesService:
                     raise ModuleException(
                         'File not found or access denied', {'data': ''}, 404
                     )
+
                 self._logger.debug(
                     'Файл успешно получен',
                     extra={'id': input_id},
                 )
-
                 return file.dump()
         else:
             file = session.query(File).get(input_id)
@@ -146,8 +150,8 @@ class FilesService:
                 raise ModuleException(
                     'File not found or access denied', {'data': ''}, 404
                 )
-            self._logger.debug('Файл успешно получен', extra={'id': input_id})
 
+            self._logger.debug('Файл успешно получен', extra={'id': input_id})
             return file
 
     def get_file_by_name(self, file_name: str) -> Dict[str, Any]:
@@ -157,41 +161,65 @@ class FilesService:
             name, extension = file_name.rsplit('.', 1)
         except ValueError:
             raise ModuleException('Invalid filename', {'data': ''}, 400)
+
         with self._pg.begin():
             file = (
-                self._pg.query(File).filter(
+                self._pg.query(File)
+                .filter(
                     File.name == name,
                     File.extension == extension,
                     File.owner_id == self._user_id,
-                ).first()
+                )
+                .first()
             )
+
             if not file:
                 raise ModuleException('File not found', {'data': ''}, 404)
-            self._logger.debug('Файл успешно получен')
 
+            self._logger.debug('Файл успешно получен')
             return file.dump()
 
     def download_file(self, file_id: int):
         """Скачивание файла по ID"""
 
-        file = self.get_file_by_id(file_id)  # здесь вернётся словарь
+        file = self.get_file_by_id(file_id)
+
+        disk_filename = (
+            f"{file['stored_name']}.{file['extension']}"
+            if file['extension']
+            else file['stored_name']
+        )
+
         full_path = os.path.join(
             self._st,
             file['relative_path'],
-            f"{file['name']}.{file['extension']}",
+            disk_filename,
         )
+
         if not os.path.exists(full_path):
             raise ModuleException('File not found', {'data': ''}, 404)
+
         self._logger.debug(
             'Файл найден, начинаем скачивание', extra={'id': file_id}
         )
 
-        return send_file(
+        download_filename = f"{file['name']}.{file['extension']}" if file[
+            'extension'] else file['name']
+
+        import urllib.parse
+        encoded_filename = urllib.parse.quote(download_filename, safe='')
+
+        response = send_file(
             full_path,
             as_attachment=True,
-            download_name=f"{file['name']}.{file['extension']}",
+            download_name=download_filename,
             mimetype='application/octet-stream',
         )
+
+        response.headers[
+            'Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
+
+        return response
 
     def upload_file(self) -> Dict[str, Any]:
         """Загрузка файла в хранилище пользователя и БД"""
@@ -199,6 +227,7 @@ class FilesService:
         raw_fields = request.form.get('fields')
         if not raw_fields:
             raise ModuleException('Missing form fields', {'data': ''}, 400)
+
         fields = json.loads(raw_fields)
         uploaded_file = request.files.get('attachment')
         if not uploaded_file:
@@ -207,21 +236,24 @@ class FilesService:
         relative_path = os.path.normpath(fields.get('path', '')).lstrip(os.sep)
         full_storage_path = os.path.join(self._st, relative_path)
 
-        filename = uploaded_file.filename
-        if not filename:
+        original_filename = uploaded_file.filename
+        if not original_filename:
             raise ModuleException('Invalid filename', {'data': ''}, 400)
 
-        if '.' in filename:
-            name, extension = filename.rsplit('.', 1)
+        if '.' in original_filename:
+            name, extension = original_filename.rsplit('.', 1)
         else:
-            name, extension = filename, ''
+            name, extension = original_filename, ''
 
-        full_path = os.path.join(full_storage_path, filename)
-
-        if os.path.exists(full_path):
-            raise ModuleException('File already exists', {'data': ''}, 400)
+        stored_name = uuid.uuid4().hex
+        disk_filename = (
+            f"{stored_name}.{extension}"
+            if extension else stored_name
+        )
 
         os.makedirs(full_storage_path, exist_ok=True)
+        full_path = os.path.join(full_storage_path, disk_filename)
+
         try:
             with open(full_path, 'wb') as f:
                 shutil.copyfileobj(uploaded_file.stream, f)
@@ -231,10 +263,12 @@ class FilesService:
             )
 
         size = os.path.getsize(full_path)
+
         with self._pg.begin():
             db_file = File(
                 name=name,
                 extension=extension,
+                stored_name=stored_name,
                 size=size,
                 path=self._st,
                 relative_path=relative_path,
@@ -246,8 +280,10 @@ class FilesService:
             self._pg.add(db_file)
             self._pg.flush()
             self._pg.refresh(db_file)
+
             self._logger.debug(
-                'Файл успешно загружен', extra={'filename': filename}
+                'Файл успешно загружен',
+                extra={'filename': original_filename},
             )
 
         return db_file.dump()
@@ -266,8 +302,11 @@ class FilesService:
 
         with self._pg.begin():
             file = self.get_file_by_id(file_id, session=self._pg)
+
             old_full_path = os.path.join(
-                self._st, file.relative_path, f'{file.name}.{file.extension}'
+                self._st,
+                file.relative_path,
+                f"{file.stored_name}.{file.extension}"
             )
 
             if name:
@@ -278,7 +317,9 @@ class FilesService:
                 file.comment = comment
 
             new_full_path = os.path.join(
-                self._st, file.relative_path, f'{file.name}.{file.extension}'
+                self._st,
+                file.relative_path,
+                f"{file.stored_name}.{file.extension}"
             )
 
             if old_full_path != new_full_path:
@@ -291,20 +332,30 @@ class FilesService:
             self._pg.add(file)
             self._pg.flush()
             self._pg.refresh(file)
-            self._logger.debug('Файл успешно обновлён', extra={'id': file_id})
 
+            self._logger.debug('Файл успешно обновлён', extra={'id': file_id})
             return file.dump()
 
     def delete_file(self, file_id: int) -> Dict[str, Any]:
         """Удаление файла и записи о нём"""
 
         with self._pg.begin():
-            file = self.get_file_by_id(file_id, session=self._pg)  # ORM-объект
-            full_path = os.path.join(
-                self._st, file.relative_path, f'{file.name}.{file.extension}'
+            file = self.get_file_by_id(file_id, session=self._pg)
+
+            disk_filename = (
+                f"{file.stored_name}.{file.extension}"
+                if file.extension else file.stored_name
             )
+
+            full_path = os.path.join(
+                self._st,
+                file.relative_path,
+                disk_filename,
+            )
+
             if os.path.exists(full_path):
                 os.remove(full_path)
+
             self._pg.delete(file)
             self._logger.debug('Файл успешно удалён', extra={'id': file_id})
 

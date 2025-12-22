@@ -32,6 +32,12 @@ class File(BaseOrmMappedModel):
             sa.String(10), nullable=False
         )},
     )
+    stored_name: str = dc.field(
+        default=None,
+        metadata={'sa': sa.Column(
+            sa.String(64), nullable=False, unique=True
+        )},
+    )
     size: int = dc.field(
         default=None,
         metadata={'sa': sa.Column(

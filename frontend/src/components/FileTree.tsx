@@ -1,100 +1,85 @@
-import type { FileItem } from "../types"
-import FileTreeNode from "./FileTreeNode"
-import "./FileTree.css"
+import type { FileItem } from "../types";
+import FileTreeNode from "./FileTreeNode";
+import "./FileTree.css";
+import { useAuth } from "../auth/AuthContext";
 
 interface FileTreeProps {
-  files: FileItem[]
-  onFileDeleted: () => void
-  onFileUpdated: () => void
+  files: FileItem[];
+  onFileDeleted: () => void;
+  onFileUpdated: () => void;
 }
 
 interface TreeNode {
-  name: string
-  path: string
-  type: "file" | "folder"
-  file?: FileItem
-  children: TreeNode[]
+  name: string;
+  type: "file" | "folder";
+  file?: FileItem;
+  children: TreeNode[];
 }
 
-function buildTree(files: FileItem[]): TreeNode {
+function buildTree(files: FileItem[], username: string): TreeNode {
   const root: TreeNode = {
-    name: "root",
-    path: "",
+    name: `Диск ${username}`,
     type: "folder",
     children: [],
-  }
+  };
 
   files.forEach((file) => {
-    const pathParts = file.path.split("/").filter(Boolean)
-    let currentNode = root
+    const pathParts = file.relative_path
+      ? file.relative_path.split("/").filter(Boolean)
+      : [];
 
-    pathParts.forEach((part, index) => {
-      const isLastPart = index === pathParts.length - 1
+    let currentNode = root;
 
-      if (isLastPart) {
-        // Это файл
-        currentNode.children.push({
-          name: part,
-          path: file.path,
-          type: "file",
-          file: file,
-          children: [],
-        })
-      } else {
-        // Это папка
-        let folder = currentNode.children.find((child) => child.name === part && child.type === "folder")
+    // создаем все папки по relative_path
+    pathParts.forEach((part) => {
+      let folder = currentNode.children.find(
+        (child) => child.name === part && child.type === "folder"
+      );
 
-        if (!folder) {
-          folder = {
-            name: part,
-            path: pathParts.slice(0, index + 1).join("/"),
-            type: "folder",
-            children: [],
-          }
-          currentNode.children.push(folder)
-        }
-
-        currentNode = folder
+      if (!folder) {
+        folder = { name: part, type: "folder", children: [] };
+        currentNode.children.push(folder);
       }
-    })
-  })
 
-  // Сортировка: папки первые, потом файлы, алфавитно
+      currentNode = folder;
+    });
+
+    // добавляем файл в последнюю папку
+    currentNode.children.push({
+      name: file.name,
+      type: "file",
+      file,
+      children: [],
+    });
+  });
+
   const sortNodes = (nodes: TreeNode[]) => {
     nodes.sort((a, b) => {
-      if (a.type !== b.type) {
-        return a.type === "folder" ? -1 : 1
-      }
-      return a.name.localeCompare(b.name)
-    })
-    nodes.forEach((node) => {
-      if (node.children.length > 0) {
-        sortNodes(node.children)
-      }
-    })
-  }
+      if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+    nodes.forEach((node) => node.children && sortNodes(node.children));
+  };
 
-  sortNodes(root.children)
-
-  return root
+  sortNodes(root.children);
+  return root;
 }
 
 export default function FileTree({ files, onFileDeleted, onFileUpdated }: FileTreeProps) {
-  const tree = buildTree(files)
+  const { user } = useAuth();
+  const tree = user ? buildTree(files, user.username) : null;
 
-  if (files.length === 0) {
+  if (!tree || files.length === 0) {
     return (
       <div className="file-tree-empty">
         <p>Нет файлов в хранилище</p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="file-tree-container">
-      {tree.children.map((node) => (
-        <FileTreeNode key={node.path} node={node} onFileDeleted={onFileDeleted} onFileUpdated={onFileUpdated} />
-      ))}
+      <FileTreeNode node={tree} depth={0} onFileDeleted={onFileDeleted} onFileUpdated={onFileUpdated} />
     </div>
-  )
+  );
 }
