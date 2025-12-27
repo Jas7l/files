@@ -85,3 +85,15 @@ def delete_file(file_id: int):
     fs = services.user_files_service(user_id=user_id)
     file = fs.delete_file(file_id)
     return jsonify(file)
+
+
+@file_bp.route('/stats', methods=['GET'])
+@token_required
+def get_files_stats():
+    """Статистика использования хранилища"""
+
+
+    user_id = g.user.id
+    fs = services.user_files_service(user_id=user_id)
+    stats = fs.get_user_statistics()
+    return jsonify(stats)

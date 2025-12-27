@@ -14,6 +14,9 @@ class AppConfig(Model):
     storage_path: str = dc.field(default='/app/storage')
     sync_interval: int = dc.field(default=3600)
     debug: bool = dc.field(default=False)
+    max_user_storage_bytes: int = dc.field(
+        default=20 * 1024 * 1024 * 1024,
+    )
 
 
 config: AppConfig = AppConfig.load(

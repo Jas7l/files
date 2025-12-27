@@ -5,6 +5,7 @@ import shutil
 import uuid
 from typing import Optional, List, Dict, Any, Union
 
+import sqlalchemy as sa
 from base_module.models import ModuleException
 from base_module.models.logger import ClassesLoggerAdapter
 from config import config
@@ -17,11 +18,21 @@ from werkzeug.utils import secure_filename
 class FilesService:
     """Сервис работы с файлами"""
 
+    FILE_CATEGORIES = {
+        'audio': {'mp3', 'wav', 'ogg', 'flac', 'aac'},
+        'video': {'mp4', 'avi', 'mkv', 'mov', 'webm'},
+        'images': {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'},
+        'documents': {
+            'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'
+        },
+    }
+
     def __init__(self, pg_connection: PGSession, user_id: int | None = None):
         self._pg = pg_connection
         self._user_id = user_id
         self._logger = ClassesLoggerAdapter.create(self)
 
+        self.max_user_storage = config.max_user_storage_bytes / 1024 / 1024
         base_path = config.storage_path
         if self._user_id is not None:
             self._st = os.path.join(base_path, str(self._user_id))
@@ -254,6 +265,25 @@ class FilesService:
         os.makedirs(full_storage_path, exist_ok=True)
         full_path = os.path.join(full_storage_path, disk_filename)
 
+        uploaded_file.stream.seek(0, os.SEEK_END)
+        new_file_size = uploaded_file.stream.tell()
+        uploaded_file.stream.seek(0)
+
+        with self._pg.begin():
+            used_bytes = self._get_user_used_bytes()
+
+        if used_bytes + new_file_size > self.max_user_storage * 1024 * 1024:
+            raise ModuleException(
+                'Storage limit exceeded (20 GB)',
+                {
+                    'data': {
+                        'used_mb': round(used_bytes / 1024 / 1024, 2),
+                        'limit_mb': self.max_user_storage
+                    },
+                },
+                413,
+            )
+
         try:
             with open(full_path, 'wb') as f:
                 shutil.copyfileobj(uploaded_file.stream, f)
@@ -360,3 +390,68 @@ class FilesService:
             self._logger.debug('Файл успешно удалён', extra={'id': file_id})
 
             return file.dump()
+
+    def get_user_statistics(self) -> Dict[str, Any]:
+        """Статистика пользователя для графиков"""
+
+        stats = {
+            'total_used_mb': 0,
+            'by_category_mb': {
+                'audio': 0,
+                'video': 0,
+                'images': 0,
+                'documents': 0,
+                'other': 0,
+            }
+        }
+
+        with self._pg.begin():
+            files = (
+                self._pg.query(File)
+                .filter(File.owner_id == self._user_id)
+                .all()
+            )
+
+        total_bytes = 0
+
+        for file in files:
+            size = file.size or 0
+            total_bytes += size
+
+            ext = (file.extension or '').lower()
+            categorized = False
+
+            for category, extensions in self.FILE_CATEGORIES.items():
+                if ext in extensions:
+                    stats['by_category_mb'][category] += size
+                    categorized = True
+                    break
+
+            if not categorized:
+                stats['by_category_mb']['other'] += size
+
+        stats['total_used_mb'] = round(total_bytes / 1024 / 1024, 2)
+
+        for key in stats['by_category_mb']:
+            stats['by_category_mb'][key] = round(
+                stats['by_category_mb'][key] / 1024 / 1024, 2
+            )
+
+        stats['limit_mb'] = self.max_user_storage
+        stats['free_mb'] = round(
+            self.max_user_storage - stats['total_used_mb'], 2
+        )
+
+        return stats
+
+    def _get_user_used_bytes(self) -> int:
+        """Сколько байт уже занято пользователем"""
+
+        result = (
+            self._pg.query(File)
+            .filter(File.owner_id == self._user_id)
+            .with_entities(sa.func.coalesce(sa.func.sum(File.size), 0))
+            .scalar()
+        )
+
+        return int(result or 0)
