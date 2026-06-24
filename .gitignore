@@ -7,3 +7,7 @@ venv/
 /pgadmin_data/
 /pgdata/
 **/config.yaml
+**/test_config.yaml
+**allure-results
+/tests/logs
+/tests/test_pgdata

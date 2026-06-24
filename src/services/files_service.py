@@ -8,7 +8,18 @@ from typing import Optional, List, Dict, Any, Union
 import sqlalchemy as sa
 from base_module.models import ModuleException
 from base_module.models.logger import ClassesLoggerAdapter
-from config import config
+
+try:
+    from config import config
+except ImportError:
+    # fallback для тестов, когда config не находится
+    from types import SimpleNamespace
+    import os
+    config = SimpleNamespace(
+        storage_path=os.path.join(os.getcwd(), "storage"),
+        max_user_storage_bytes=20 * 1024 * 1024 * 1024,
+    )
+
 from flask import request, send_file
 from models.file import File
 from sqlalchemy.orm import Session as PGSession

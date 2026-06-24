@@ -12,7 +12,7 @@ class File(BaseOrmMappedModel):
     """SQL модель файла"""
 
     __tablename__ = 'files'
-    __table_args__ = {'schema': SCHEMA_NAME}
+    __table_args__ = {'schema': SCHEMA_NAME, 'extend_existing': True}
 
     id: int = dc.field(
         default=None,

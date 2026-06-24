@@ -13,7 +13,7 @@ class User(BaseOrmMappedModel):
     """SQL модель пользователя"""
 
     __tablename__ = 'users'
-    __table_args__ = {'schema': SCHEMA_NAME}
+    __table_args__ = {'schema': SCHEMA_NAME, 'extend_existing': True}
 
     id: int = dc.field(
         default=None,
