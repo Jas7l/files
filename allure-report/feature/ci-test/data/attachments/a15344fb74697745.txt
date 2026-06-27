@@ -1,0 +1,5 @@
+DEBUG    root:files_service.py:377 Файл успешно обновлён
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:208 Test data cleanup completed
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:60 Test database schema dropped
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:89 Test database cleaned up
+INFO     conftest:conftest.py:54 Test session cleanup completed

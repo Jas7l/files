@@ -1,0 +1,1 @@
+{"total":2,"items":[{"uid":"6781da93f9d3428f5c0b706b51a4cea9","name":"File Storage Service","statistic":{"failed":0,"broken":0,"skipped":0,"passed":2,"unknown":0,"total":2}},{"uid":"844ec702b099f5a2166e7912c746495c","name":"File Service","statistic":{"failed":0,"broken":0,"skipped":0,"passed":1,"unknown":0,"total":1}}]}

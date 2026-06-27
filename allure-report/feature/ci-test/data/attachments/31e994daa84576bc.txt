@@ -1,0 +1,16 @@
+INFO     tests.clients.auth_client:auth_client.py:21 Logging in user: test_user
+INFO     tests.clients.base_client:base_client.py:50 >>> POST http://localhost:8020/api/auth/login
+DEBUG    urllib3.connectionpool:connectionpool.py:244 Starting new HTTP connection (1): localhost:8020
+DEBUG    urllib3.connectionpool:connectionpool.py:549 http://localhost:8020 "POST /api/auth/login HTTP/1.1" 200 164
+INFO     tests.clients.base_client:base_client.py:60 <<< 200 http://localhost:8020/api/auth/login
+INFO     tests.clients.auth_client:auth_client.py:32 Auth token set successfully
+INFO     tests.clients.base_client:base_client.py:50 >>> GET http://localhost:8020/api/files
+DEBUG    urllib3.connectionpool:connectionpool.py:244 Starting new HTTP connection (1): localhost:8020
+DEBUG    urllib3.connectionpool:connectionpool.py:549 http://localhost:8020 "GET /api/files?path=test HTTP/1.1" 200 573
+INFO     tests.clients.base_client:base_client.py:60 <<< 200 http://localhost:8020/api/files?path=test
+INFO     tests.clients.base_client:base_client.py:151 Session closed
+INFO     tests.clients.base_client:base_client.py:151 Session closed
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:208 Test data cleanup completed
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:60 Test database schema dropped
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:89 Test database cleaned up
+INFO     conftest:conftest.py:54 Test session cleanup completed

@@ -1,0 +1,34 @@
+2026-06-27 14:56:08 - conftest - INFO - Logging configured
+2026-06-27 14:56:08 - tests.fixtures.db_fixtures - INFO - Setting up test database connection
+2026-06-27 14:56:08 - tests.fixtures.db_fixtures - INFO - Test database schema created
+2026-06-27 14:56:08 - tests.fixtures.db_fixtures - INFO - ==================================================
+2026-06-27 14:56:08 - tests.fixtures.db_fixtures - INFO - Preparing test data via API...
+2026-06-27 14:56:08 - tests.fixtures.db_fixtures - INFO - ==================================================
+2026-06-27 14:56:08 - tests.clients.auth_client - INFO - Registering user with username: test_user
+2026-06-27 14:56:08 - tests.clients.base_client - INFO - >>> POST http://localhost:8020/api/auth/register
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - <<< 201 http://localhost:8020/api/auth/register
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ✓ Registered test user: test_user
+2026-06-27 14:56:09 - tests.clients.auth_client - INFO - Logging in user: test_user
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - >>> POST http://localhost:8020/api/auth/login
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - <<< 200 http://localhost:8020/api/auth/login
+2026-06-27 14:56:09 - tests.clients.auth_client - INFO - Auth token set successfully
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ✓ Authenticated as: test_user (ID: 1)
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - >>> POST http://localhost:8020/api/files
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - <<< 200 http://localhost:8020/api/files
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ✓ Uploaded: test_file_1.txt → ID: 1
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - >>> POST http://localhost:8020/api/files
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - <<< 200 http://localhost:8020/api/files
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ✓ Uploaded: test_file_2.pdf → ID: 2
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - >>> POST http://localhost:8020/api/files
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - <<< 200 http://localhost:8020/api/files
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ✓ Uploaded: document.docx → ID: 3
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - Session closed
+2026-06-27 14:56:09 - tests.clients.base_client - INFO - Session closed
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ==================================================
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ✓ Test data prepared successfully!
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO -   User ID: 1
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO -   Files uploaded: 3
+2026-06-27 14:56:09 - tests.fixtures.db_fixtures - INFO - ==================================================
+2026-06-27 14:56:18 - tests.fixtures.ui_fixtures - INFO - WebDriver initialized, navigating to http://localhost:5173
+2026-06-27 14:56:20 - conftest - INFO - ✓ PASSED: test_successful_login
+2026-06-27 14:56:20 - tests.fixtures.ui_fixtures - INFO - Closing WebDriver

@@ -1,0 +1,7 @@
+2026-06-27 14:56:22 - tests.fixtures.ui_fixtures - INFO - WebDriver initialized, navigating to http://localhost:5173
+2026-06-27 14:56:22 - conftest - INFO - ✓ PASSED: test_register_link
+2026-06-27 14:56:22 - tests.fixtures.ui_fixtures - INFO - Closing WebDriver
+2026-06-27 14:56:22 - tests.fixtures.db_fixtures - INFO - Test data cleanup completed
+2026-06-27 14:56:22 - tests.fixtures.db_fixtures - INFO - Test database schema dropped
+2026-06-27 14:56:22 - tests.fixtures.db_fixtures - INFO - Test database cleaned up
+2026-06-27 14:56:22 - conftest - INFO - Test session cleanup completed

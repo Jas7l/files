@@ -1,0 +1,6 @@
+GET /api/files?path=test
+
+Query Parameters:
+{
+  "path": "test"
+}

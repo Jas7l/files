@@ -1,0 +1,11 @@
+INFO     tests.ui.pages.playwright.login_page:login_page.py:39 Navigating to login page
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:26 Navigating to http://localhost:5173/login
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:60 Checking visibility of: a[href='/register']
+INFO     tests.ui.pages.playwright.login_page:login_page.py:93 Clicking register link
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:45 Clicking element: a[href='/register']
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:75 Waiting for URL: /register
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:60 Checking visibility of: h2:has-text('Регистрация')
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:208 Test data cleanup completed
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:60 Test database schema dropped
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:89 Test database cleaned up
+INFO     conftest:conftest.py:54 Test session cleanup completed
