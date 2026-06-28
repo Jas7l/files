@@ -1,0 +1,1 @@
+Вызван os.makedirs с путем: /tmp/pytest-of-runner/pytest-0/test_init_creates_user_directo0/storage/42

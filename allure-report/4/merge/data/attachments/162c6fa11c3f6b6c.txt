@@ -1,0 +1,3 @@
+2026-06-28 16:49:27 - tests.fixtures.ui_fixtures - INFO - WebDriver initialized, navigating to http://localhost:5173
+2026-06-28 16:49:28 - conftest - INFO - ✓ PASSED: test_failed_login_wrong_password
+2026-06-28 16:49:28 - tests.fixtures.ui_fixtures - INFO - Closing WebDriver

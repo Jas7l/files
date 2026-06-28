@@ -1,0 +1,1 @@
+Удален файл: /tmp/pytest-of-runner/pytest-0/test_delete_file_calls_remove_0/1/p/deadbeefdead.txt
