@@ -1,0 +1,218 @@
+name: Test Automation Pipeline
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-all:
+    name: Run All Tests
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    env:
+      # ============================================
+      # ПОРТЫ ДОЛЖНЫ СОВПАДАТЬ С DOCKER-COMPOSE
+      # ============================================
+      API_URL: http://localhost:8020
+      BASE_URL: http://localhost:5173
+      PG_HOST: localhost
+      PG_PORT: 5443              # ← ИСПРАВЛЕНО: было 5432
+      PG_USER: postgres
+      PG_PASSWORD: postgres
+      PG_DATABASE: test_db
+      HEADLESS_MODE: true
+      TEST_USERNAME: test_user
+      TEST_PASSWORD: TestPass123
+      ENVIRONMENT: dev
+      VITE_API_URL: http://files:8000
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Create .env for Docker Compose
+        run: |
+          mkdir -p tests
+          cat > tests/.env << 'EOF'
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=postgres
+          POSTGRES_DB=test_db
+          EOF
+
+      - name: Create dev.env for pytest
+        run: |
+          mkdir -p tests/config
+          cat > tests/config/dev.env << 'EOF'
+          ENVIRONMENT=${{ env.ENVIRONMENT }}
+          BASE_URL=${{ env.BASE_URL }}
+          API_URL=${{ env.API_URL }}
+          PG_HOST=${{ env.PG_HOST }}
+          PG_PORT=${{ env.PG_PORT }}
+          PG_USER=${{ env.PG_USER }}
+          PG_PASSWORD=${{ env.PG_PASSWORD }}
+          PG_DATABASE=${{ env.PG_DATABASE }}
+          TEST_USERNAME=${{ env.TEST_USERNAME }}
+          TEST_PASSWORD=${{ env.TEST_PASSWORD }}
+          HEADLESS_MODE=${{ env.HEADLESS_MODE }}
+          EOF
+
+      - name: Create test_config.yaml
+        run: |
+          cat > tests/test_config.yaml << 'EOF'
+          pg:
+            host: db
+            port: 5432
+            user: postgres
+            password: postgres
+            database: test_db
+          storage_path: /app/storage
+          sync_interval: 3600
+          debug: True
+          EOF
+
+      - name: Create config.yaml
+        run: |
+          cat > config.yaml << 'EOF'
+          pg:
+            host: db
+            port: 5432
+            user: postgres
+            password: postgres
+            database: test_db
+          storage_path: /app/storage
+          sync_interval: 3600
+          debug: True
+          EOF
+
+      - name: Create frontend .env
+        run: |
+          cat > frontend/.env << 'EOF'
+          VITE_API_URL=http://files:8000
+          EOF
+
+      - name: Install Python test dependencies
+        run: |
+          python -m pip install -r tests/requirements-test.txt
+          python -m pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps chromium
+        continue-on-error: false
+
+      - name: Build Docker image
+        run: |
+          docker build -t files:1.0.2 .
+          docker images
+
+      - name: Start test environment (docker-compose)
+        run: |
+          VITE_API_URL=${{ env.VITE_API_URL }} docker compose -f tests/docker-compose.test.yml up -d --build
+          sleep 10
+
+      - name: Show container status (debug)
+        run: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+      - name: Show container logs for debugging
+        run: |
+          echo "=== Docker Compose logs ==="
+          docker compose -f tests/docker-compose.test.yml logs
+          echo "=== Files container logs ==="
+          docker logs tests-files-1 || echo "No files logs"
+          echo "=== Frontend container logs ==="
+          docker logs test_frontend || echo "No frontend logs"
+          echo "=== DB container logs ==="
+          docker logs test_postgres || echo "No db logs"
+
+      - name: Run api pytest tests
+        working-directory: tests
+        run: |
+          pytest api -v --tb=short --alluredir=allure-results
+
+      - name: Run unit pytest tests
+        working-directory: tests
+        run: |
+          pytest unit -v --tb=short --alluredir=allure-results
+
+      - name: Show container logs for debugging
+        run: |
+          echo "=== Frontend container logs ==="
+          docker logs test_frontend || echo "No frontend logs"
+          echo "=== Checking frontend ==="
+          curl -v http://localhost:5173 || echo "Frontend not ready"
+
+      - name: Run ui playwright pytest tests
+        working-directory: tests
+        run: |
+          pytest ui -v -m playwright --tb=short --alluredir=allure-results
+
+      - name: Run ui selenium pytest tests
+        working-directory: tests
+        run: |
+          pytest ui -m selenium -v --tb=short --alluredir=allure-results
+
+      - name: Show test logs if failed
+        if: failure()
+        run: |
+          echo "=== Test logs (last 200 lines) ==="
+          cd tests || exit 0
+          ls -la logs/ 2>/dev/null || echo "No logs directory"
+          (tail -n 200 logs/*.log 2>/dev/null) || echo "No log files"
+
+      - name: Upload Allure results (raw)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ github.run_id }}
+          path: tests/allure-results
+
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y openjdk-17-jre-headless wget unzip
+          wget -q -O allure.zip https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.zip
+          unzip -q allure.zip -d .
+          ./allure-2.29.0/bin/allure generate tests/allure-results -o tests/allure-report --clean
+
+      - name: Upload Allure Report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ github.run_id }}
+          path: tests/allure-report
+      
+      - name: Deploy Allure Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./tests/allure-report
+          destination_dir: allure-report/${{ github.ref_name }}
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+      
+      - name: Add report links to summary
+        if: always()
+        run: |
+          echo "### 📊 Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Type | Link |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| 📥 Allure results | [download](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📄 Allure Report (artifact) | [download](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 GitHub Pages | https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/allure-report/${{ github.ref_name }}/ |" >> $GITHUB_STEP_SUMMARY
+    
+      - name: Stop test environment
+        if: always()
+        run: docker compose -f tests/docker-compose.test.yml down -v
