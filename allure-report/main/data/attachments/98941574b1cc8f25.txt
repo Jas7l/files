@@ -1,0 +1,5 @@
+2026-06-28 16:49:56 - conftest - INFO - ✓ PASSED: test_register_link[chromium]
+2026-06-28 16:49:56 - tests.fixtures.db_fixtures - INFO - Test data cleanup completed
+2026-06-28 16:49:56 - tests.fixtures.db_fixtures - INFO - Test database schema dropped
+2026-06-28 16:49:56 - tests.fixtures.db_fixtures - INFO - Test database cleaned up
+2026-06-28 16:49:56 - conftest - INFO - Test session cleanup completed

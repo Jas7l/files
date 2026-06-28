@@ -1,0 +1,31 @@
+Status Code: 200
+
+Response Body:
+[
+  {
+    "comment": "Base test file 1",
+    "creation_date": "2026-06-28T16:49:48.542626",
+    "extension": "txt",
+    "id": 1,
+    "name": "test_file_1",
+    "owner_id": 1,
+    "path": "/app/storage/1",
+    "relative_path": "test",
+    "size": 0,
+    "stored_name": "c6093c60859c46e38a1e4116b94807ff",
+    "update_date": "2026-06-28T16:49:48.544112"
+  },
+  {
+    "comment": "Base test file 2",
+    "creation_date": "2026-06-28T16:49:48.560370",
+    "extension": "pdf",
+    "id": 2,
+    "name": "test_file_2",
+    "owner_id": 1,
+    "path": "/app/storage/1",
+    "relative_path": "test",
+    "size": 514008,
+    "stored_name": "40cbca64a2454186a6045131bd0cd411",
+    "update_date": "2026-06-28T16:49:48.560724"
+  }
+]

@@ -1,0 +1,13 @@
+2026-06-28 16:49:48 - tests.clients.auth_client - INFO - Logging in user: test_user
+2026-06-28 16:49:48 - tests.clients.base_client - INFO - >>> POST http://localhost:8020/api/auth/login
+2026-06-28 16:49:49 - tests.clients.base_client - INFO - <<< 200 http://localhost:8020/api/auth/login
+2026-06-28 16:49:49 - tests.clients.auth_client - INFO - Auth token set successfully
+2026-06-28 16:49:49 - tests.clients.base_client - INFO - >>> GET http://localhost:8020/api/files
+2026-06-28 16:49:49 - tests.clients.base_client - INFO - <<< 200 http://localhost:8020/api/files?path=test
+2026-06-28 16:49:49 - conftest - INFO - ✓ PASSED: test_get_files_filtred
+2026-06-28 16:49:49 - tests.clients.base_client - INFO - Session closed
+2026-06-28 16:49:49 - tests.clients.base_client - INFO - Session closed
+2026-06-28 16:49:49 - tests.fixtures.db_fixtures - INFO - Test data cleanup completed
+2026-06-28 16:49:49 - tests.fixtures.db_fixtures - INFO - Test database schema dropped
+2026-06-28 16:49:49 - tests.fixtures.db_fixtures - INFO - Test database cleaned up
+2026-06-28 16:49:49 - conftest - INFO - Test session cleanup completed
