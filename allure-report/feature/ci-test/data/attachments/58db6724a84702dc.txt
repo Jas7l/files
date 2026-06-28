@@ -1,0 +1,1 @@
+Переименован: /tmp/pytest-of-runner/pytest-0/test_update_file_changes0/1/a/s.txt → /tmp/pytest-of-runner/pytest-0/test_update_file_changes0/1/b/s.txt

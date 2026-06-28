@@ -1,0 +1,1 @@
+DEBUG    root:files_service.py:401 Файл успешно удалён

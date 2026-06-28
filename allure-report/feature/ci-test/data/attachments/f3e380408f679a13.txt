@@ -1,0 +1,12 @@
+INFO     tests.ui.pages.playwright.login_page:login_page.py:39 Navigating to login page
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:26 Navigating to http://localhost:5173/login
+INFO     tests.ui.pages.playwright.login_page:login_page.py:59 Logging in as: test_user
+INFO     tests.ui.pages.playwright.login_page:login_page.py:44 Entering username: test_user
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:50 Filling input[placeholder='Имя пользователя'] with: test_user
+INFO     tests.ui.pages.playwright.login_page:login_page.py:49 Entering password
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:50 Filling input[type='password'][placeholder='Пароль'] with: wrong_password
+INFO     tests.ui.pages.playwright.login_page:login_page.py:54 Clicking login button
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:45 Clicking element: button:has-text('Войти')
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:31 Waiting for element: p[style*='color: red']
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:60 Checking visibility of: p:has-text('Не удалось загрузить список файлов')
+INFO     tests.ui.pages.base.base_playwright_page:base_playwright_page.py:60 Checking visibility of: span:has-text('Не удалось загрузить статистику')

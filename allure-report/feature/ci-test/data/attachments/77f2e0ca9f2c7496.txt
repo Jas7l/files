@@ -1,0 +1,84 @@
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.address`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.address` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.automotive`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.automotive` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.bank`.
+DEBUG    faker.factory:factory.py:86 Specified locale `en_US` is not available for provider `faker.providers.bank`. Locale reset to `en_GB` for this provider.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.barcode`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.barcode` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.color`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.color` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.company`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.company` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.credit_card`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.credit_card` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.currency`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.currency` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.date_time`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.date_time` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:106 Provider `faker.providers.emoji` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+DEBUG    faker.factory:factory.py:106 Provider `faker.providers.file` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.geo`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.geo` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.internet`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.internet` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:106 Provider `faker.providers.isbn` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.job`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.job` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.lorem`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.lorem` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.misc`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.misc` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.passport`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.passport` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.person`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.person` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.phone_number`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.phone_number` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:106 Provider `faker.providers.profile` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+DEBUG    faker.factory:factory.py:106 Provider `faker.providers.python` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+DEBUG    faker.factory:factory.py:106 Provider `faker.providers.sbn` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+DEBUG    faker.factory:factory.py:76 Looking for locale `en_US` in provider `faker.providers.ssn`.
+DEBUG    faker.factory:factory.py:95 Provider `faker.providers.ssn` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:106 Provider `faker.providers.user_agent` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+INFO     conftest:conftest.py:52 Logging configured
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:80 Setting up test database connection
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:49 Test database schema created
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:113 ==================================================
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:114 Preparing test data via API...
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:115 ==================================================
+INFO     tests.clients.auth_client:auth_client.py:15 Registering user with username: test_user
+INFO     tests.clients.base_client:base_client.py:50 >>> POST http://localhost:8020/api/auth/register
+DEBUG    urllib3.connectionpool:connectionpool.py:244 Starting new HTTP connection (1): localhost:8020
+DEBUG    urllib3.connectionpool:connectionpool.py:549 http://localhost:8020 "POST /api/auth/register HTTP/1.1" 201 32
+INFO     tests.clients.base_client:base_client.py:60 <<< 201 http://localhost:8020/api/auth/register
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:129 ✓ Registered test user: test_user
+INFO     tests.clients.auth_client:auth_client.py:21 Logging in user: test_user
+INFO     tests.clients.base_client:base_client.py:50 >>> POST http://localhost:8020/api/auth/login
+DEBUG    urllib3.connectionpool:connectionpool.py:292 Resetting dropped connection: localhost
+DEBUG    urllib3.connectionpool:connectionpool.py:549 http://localhost:8020 "POST /api/auth/login HTTP/1.1" 200 164
+INFO     tests.clients.base_client:base_client.py:60 <<< 200 http://localhost:8020/api/auth/login
+INFO     tests.clients.auth_client:auth_client.py:32 Auth token set successfully
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:148 ✓ Authenticated as: test_user (ID: 1)
+INFO     tests.clients.base_client:base_client.py:50 >>> POST http://localhost:8020/api/files
+DEBUG    urllib3.connectionpool:connectionpool.py:244 Starting new HTTP connection (1): localhost:8020
+DEBUG    urllib3.connectionpool:connectionpool.py:549 http://localhost:8020 "POST /api/files HTTP/1.1" 200 283
+INFO     tests.clients.base_client:base_client.py:60 <<< 200 http://localhost:8020/api/files
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:187 ✓ Uploaded: test_file_1.txt → ID: 1
+INFO     tests.clients.base_client:base_client.py:50 >>> POST http://localhost:8020/api/files
+DEBUG    urllib3.connectionpool:connectionpool.py:292 Resetting dropped connection: localhost
+DEBUG    urllib3.connectionpool:connectionpool.py:549 http://localhost:8020 "POST /api/files HTTP/1.1" 200 288
+INFO     tests.clients.base_client:base_client.py:60 <<< 200 http://localhost:8020/api/files
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:187 ✓ Uploaded: test_file_2.pdf → ID: 2
+INFO     tests.clients.base_client:base_client.py:50 >>> POST http://localhost:8020/api/files
+DEBUG    urllib3.connectionpool:connectionpool.py:292 Resetting dropped connection: localhost
+DEBUG    urllib3.connectionpool:connectionpool.py:549 http://localhost:8020 "POST /api/files HTTP/1.1" 200 288
+INFO     tests.clients.base_client:base_client.py:60 <<< 200 http://localhost:8020/api/files
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:187 ✓ Uploaded: document.docx → ID: 3
+INFO     tests.clients.base_client:base_client.py:151 Session closed
+INFO     tests.clients.base_client:base_client.py:151 Session closed
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:200 ==================================================
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:201 ✓ Test data prepared successfully!
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:202   User ID: 1
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:203   Files uploaded: 3
+INFO     tests.fixtures.db_fixtures:db_fixtures.py:204 ==================================================
