@@ -34,6 +34,19 @@ services:
       - test-backend-network
     restart: always
 
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: test_frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - test-backend-network
+    depends_on:
+      - files
+    restart: always
+
   redis:
     image: redis:7
     container_name: test_redis

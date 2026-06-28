@@ -11,3 +11,7 @@ venv/
 **allure-results
 /tests/logs
 /tests/test_pgdata
+allure-report/
+allure-results/
+coverage.xml
+/tests/config/*.env

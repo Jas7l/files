@@ -53,11 +53,11 @@ run-all:
 	@echo "All tests completed"
 
 run-api:
-	pytest tests/api -v --tb=short
+	pytest api -v --tb=short
 	@echo "API tests completed"
 
 run-ui:
-	pytest tests/ui -v --tb=short
+	pytest ui -v --tb=short
 	@echo "UI tests completed"
 
 run-smoke:
@@ -73,11 +73,11 @@ run-parallel:
 	@echo "Parallel test execution completed"
 
 run-playwright:
-	pytest tests/ui/playwright -v --tb=short
+	pytest ui/playwright -v --tb=short
 	@echo "Playwright UI tests completed"
 
 run-selenium:
-	pytest tests/ui/selenium -v --tb=short
+	pytest ui/selenium -v --tb=short
 	@echo "Selenium UI tests completed"
 
 run-headless:
@@ -113,7 +113,7 @@ test-env-up:
 	@echo "Waiting for services to be ready..."
 	sleep 5
 	@echo "✅ Test environment is ready"
-	@echo "  API: http://localhost:8021"
+	@echo "  API: http://localhost:8020"
 	@echo "  DB: localhost:5443"
 	@echo "  Redis: localhost:6378"
 
